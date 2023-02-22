@@ -15,7 +15,7 @@ fn create_data(line_length: usize, points_length: usize) -> (Array2<f64>, Array2
 }
 
 fn serial(c: &mut Criterion) {
-    let lines_pts = [1, 5, 30];
+    let lines_pts = [1, 5, 20];
     let clout_pts = [1, 10, 20];
 
     for (line_ct, cloud_ct) in lines_pts.into_iter().zip(clout_pts) {
@@ -29,7 +29,7 @@ fn serial(c: &mut Criterion) {
 }
 
 fn parallel(c: &mut Criterion) {
-    let lines_pts = [1, 5, 30];
+    let lines_pts = [1, 5, 20];
     let clout_pts = [1, 10, 20];
 
     for (line_ct, cloud_ct) in lines_pts.into_iter().zip(clout_pts) {
