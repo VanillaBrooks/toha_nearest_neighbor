@@ -20,6 +20,8 @@ jobs:
       run: |
         ./update_python_version.sh
         maturin build --sdist
+        echo "current pyproject.toml"
+        cat ./pyproject.toml
     - name: Verify Installation
       run: |
         pip3 install .
