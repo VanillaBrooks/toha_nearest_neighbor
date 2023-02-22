@@ -37,7 +37,7 @@ use pyo3::prelude::*;
 ///         ]
 ///     )
 ///
-///     # output: 
+///     # output:
 ///     # [[0. 0.]
 ///     #  [2. 2.]]
 ///     toha_nearest_neighbor.brute_force(line_points, point_cloud)
@@ -91,7 +91,7 @@ fn brute_force<'a>(
 ///         ]
 ///     )
 ///
-///     # output: 
+///     # output:
 ///     # [[0. 0.]
 ///     #  [2. 2.]]
 ///     toha_nearest_neighbor.kd_tree(line_points, point_cloud, parallel = True)
