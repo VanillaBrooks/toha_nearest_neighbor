@@ -1,5 +1,5 @@
-use toha_nearest_neighbor::brute_force;
-use toha_nearest_neighbor::brute_force_par;
+use toha_nearest_neighbor::kd_tree;
+use toha_nearest_neighbor::kd_tree_par;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
@@ -20,11 +20,10 @@ fn serial(c: &mut Criterion) {
 
     for (line_ct, cloud_ct) in lines_pts.into_iter().zip(clout_pts) {
         let (lines, points) = create_data(line_ct * 1000, cloud_ct * 1000);
-        let name =
-            format!("brute force | serial | {line_ct}k line points |  {cloud_ct}k cloud points");
+        let name = format!("kd tree | serial | {line_ct}k line points |  {cloud_ct}k cloud points");
 
         c.bench_function(&name, |b| {
-            b.iter(|| black_box(brute_force(lines.view(), points.view())))
+            b.iter(|| black_box(kd_tree(lines.view(), points.view())))
         });
     }
 }
@@ -36,11 +35,11 @@ fn parallel(c: &mut Criterion) {
     for (line_ct, cloud_ct) in lines_pts.into_iter().zip(clout_pts) {
         let (lines, points) = create_data(line_ct * 1000, cloud_ct * 1000);
         let name =
-            format!("brute force | parallel | {line_ct}k line points |  {cloud_ct}k cloud points");
+            format!("kd tree | parallel | {line_ct}k line points |  {cloud_ct}k cloud points");
 
         c.bench_function(&name, |b| {
             b.iter(|| {
-                black_box(brute_force_par(lines.view(), points.view()));
+                black_box(kd_tree_par(lines.view(), points.view()));
             })
         });
     }

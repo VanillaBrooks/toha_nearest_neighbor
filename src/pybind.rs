@@ -1,5 +1,6 @@
-use pyo3::prelude::*;
+use numpy::PyArray2;
 use numpy::PyReadonlyArray2;
+use pyo3::prelude::*;
 
 #[pyfunction]
 #[pyo3(signature = (line_points, point_cloud, parallel = false))]
@@ -40,9 +41,8 @@ use numpy::PyReadonlyArray2;
 fn brute_force(
     line_points: PyReadonlyArray2<'_, f64>,
     point_cloud: PyReadonlyArray2<'_, f64>,
-    parallel: bool
+    parallel: bool,
 ) -> Vec<usize> {
-
     if parallel {
         super::brute_force_par(line_points.as_array(), point_cloud.as_array())
     } else {
@@ -50,9 +50,26 @@ fn brute_force(
     }
 }
 
+#[pyfunction]
+fn kd_tree<'a>(
+    py: Python<'a>,
+    line_points: PyReadonlyArray2<'a, f64>,
+    point_cloud: PyReadonlyArray2<'a, f64>,
+    parallel: bool,
+) -> &'a PyArray2<f64> {
+    if parallel {
+        let arr = super::kd_tree_par(line_points.as_array(), point_cloud.as_array());
+        PyArray2::from_owned_array(py, arr)
+    } else {
+        let arr = super::kd_tree(line_points.as_array(), point_cloud.as_array());
+        PyArray2::from_owned_array(py, arr)
+    }
+}
+
 /// This module is implemented in Rust.
 #[pymodule]
 fn toha_nearest_neighbor(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(brute_force, m)?)?;
+    m.add_function(wrap_pyfunction!(crate::pybind::kd_tree, m)?)?;
     Ok(())
 }
