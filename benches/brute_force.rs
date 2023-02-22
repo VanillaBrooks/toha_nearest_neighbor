@@ -17,7 +17,7 @@ fn create_data(line_length: usize, points_length: usize) -> (Array2<f64>, Array2
 fn serial(c: &mut Criterion) {
     let (lines, points) = create_data(40_000, 20_000);
 
-    c.bench_function("40k line points | 20k match points", |b| {
+    c.bench_function("serial | 40k line points | 20k match points", |b| {
         b.iter(|| {
             brute_force(lines.view(), points.view());
         })
@@ -25,7 +25,7 @@ fn serial(c: &mut Criterion) {
 
     let (lines, points) = create_data(1000, 2000);
 
-    c.bench_function("1k line points | 2k match points", |b| {
+    c.bench_function("serial | 1k line points | 2k match points", |b| {
         b.iter(|| {
             brute_force(lines.view(), points.view());
         })
@@ -35,7 +35,7 @@ fn serial(c: &mut Criterion) {
 fn parallel(c: &mut Criterion) {
     let (lines, points) = create_data(40_000, 20_000);
 
-    c.bench_function("40k line points | 20k match points", |b| {
+    c.bench_function("parallel | 40k line points | 20k match points", |b| {
         b.iter(|| {
             brute_force_par(lines.view(), points.view());
         })
@@ -43,7 +43,7 @@ fn parallel(c: &mut Criterion) {
 
     let (lines, points) = create_data(1000, 2000);
 
-    c.bench_function("1k line points | 2k match points", |b| {
+    c.bench_function("parallel | 1k line points | 2k match points", |b| {
         b.iter(|| {
             brute_force(lines.view(), points.view());
         })
