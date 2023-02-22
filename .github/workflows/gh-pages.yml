@@ -1,0 +1,49 @@
+name: Github Pages
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+          architecture: x64
+      - uses: actions/checkout@v3
+      - name: install maturin and sphinx
+        run: |
+          pip3 install maturin sphinx sphinx_rtd_theme
+      - name: verify project compiles
+        run: |
+          cargo build
+          rustc --version
+          maturin --version
+      - name: build sphinx docs
+        run: |
+          ./update_python_version.sh
+          maturin build --sdist
+          pip3 install .
+          cd docs
+          make html
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: '0.4.10'
+      - run: mdbook build docs
+      - name: copy sphinx docs into book directory
+        run: |
+          mv ./docs/build/html/ ./docs/book/python
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/book
+          publish_branch: gh-pages
