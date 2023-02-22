@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to toha_nearest_neighbor’s documentation! &mdash; toha_nearest_neighbor  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            toha_nearest_neighbor
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Welcome to toha_nearest_neighbor’s documentation!</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api-reference">Api Reference</a><ul>
+<li><a class="reference internal" href="#toha_nearest_neighbor.brute_force"><code class="docutils literal notranslate"><span class="pre">brute_force()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">toha_nearest_neighbor</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to toha_nearest_neighbor’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="welcome-to-toha-nearest-neighbor-s-documentation">
+<h1>Welcome to toha_nearest_neighbor’s documentation!<a class="headerlink" href="#welcome-to-toha-nearest-neighbor-s-documentation" title="Permalink to this heading"></a></h1>
+<section id="installation">
+<span id="id1"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<p>Install with <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pip3<span class="w"> </span>install<span class="w"> </span>toha_nearest_neighbor
+</pre></div>
+</div>
+</section>
+</section>
+<section id="api-reference">
+<h1>Api Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="toha_nearest_neighbor.brute_force">
+<span class="sig-prename descclassname"><span class="pre">toha_nearest_neighbor.</span></span><span class="sig-name descname"><span class="pre">brute_force</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_cloud</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#toha_nearest_neighbor.brute_force" title="Permalink to this definition"></a></dt>
+<dd><p>For every point in <code class="docutils literal notranslate"><span class="pre">point_cloud</span></code>, find it’s nearest neighbor in <code class="docutils literal notranslate"><span class="pre">line_points</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line_points</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_LINE_POINTS,</span> <span class="pre">2)</span></code></p></li>
+<li><p><strong>point_cloud</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">2)</span></code></p></li>
+<li><p><strong>parallel</strong> (<em>bool</em>) – enable parallel processing for the dataset. If you have more than 2,000 line points and 2,000 point cloud points this may be useful.</p></li>
+</ul>
+</dd>
+</dl>
+<p>this function returns a list of indicies of size <code class="docutils literal notranslate"><span class="pre">NUM_POINT_CLOUD_POINTS</span></code>, where every index
+in the list is the index of the <code class="docutils literal notranslate"><span class="pre">line_points</span></code> row that is closest to the <code class="docutils literal notranslate"><span class="pre">point_cloud</span></code>
+point.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">toha_nearest_neighbor</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">line_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">point_cloud</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">],</span> <span class="c1">#closest to the 0-th index of line_points rows</span>
+        <span class="p">[</span><span class="mf">2.2</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="c1"># closest to the 2-nd index of line_points rows</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># output: [0, 2]</span>
+<span class="n">toha_nearest_neighbor</span><span class="o">.</span><span class="n">brute_force</span><span class="p">(</span><span class="n">line_points</span><span class="p">,</span> <span class="n">point_cloud</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Brooks.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
