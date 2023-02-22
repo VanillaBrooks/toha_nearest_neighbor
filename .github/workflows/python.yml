@@ -1,0 +1,58 @@
+name: Python
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+        architecture: x64
+    - name: Install maturin
+      run: |
+        pip3 install maturin
+    - name: Package Source
+      run: |
+        ./update_python_version.sh
+        maturin build --sdist
+    - name: Verify Installation
+      run: |
+        pip3 install .
+        python3 src/validate_bindings.py
+    - name: Cache python wheels
+      uses: actions/cache@v3
+      with:
+        key: python-wheels
+        path: |
+          target/wheels
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    if: "startsWith(github.ref, 'refs/heads/master')"
+    steps:
+    - uses: actions/cache/restore@v3
+      with:
+        key: python-wheels
+        path: target/wheels
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+    - name: Publish to PyPi
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        echo $PWD
+        echo "current dir:"
+        ls 
+        pip install --upgrade twine
+        echo "files matching source distribution"
+        find . -name "*.tar.gz"
+        echo "attempting twine upload"
+        find . -name "*.tar.gz" | xargs twine upload --skip-existing 

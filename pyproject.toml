@@ -1,0 +1,13 @@
+[project]
+name = "toha_nearest_neighbor"
+dependencies = []
+version = "0.1.0"
+description = ""
+
+[build-system]
+requires = ["maturin>=0.14,<0.15"]
+build-backend = "maturin"
+
+[tool.maturin]
+# "extension-module" tells pyo3 we want to build an extension module (skips linking against libpython.so)
+features = ["pyo3/extension-module"]
