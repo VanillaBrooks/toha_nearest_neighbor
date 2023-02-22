@@ -1,10 +1,7 @@
 use pyo3::prelude::*;
-use ndarray::Array2;
+use numpy::PyReadonlyArray2;
 
-use numpy::ndarray::{ArrayD, ArrayViewD, ArrayViewMutD};
-use numpy::{IntoPyArray, PyArrayDyn, PyReadonlyArrayDyn, PyReadonlyArray2};
-
-#[pyfunction()]
+#[pyfunction]
 #[pyo3(signature = (line_points, point_cloud, parallel = false))]
 /// For every point in ``point_cloud``, find it's nearest neighbor in ``line_points``
 ///

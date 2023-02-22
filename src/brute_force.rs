@@ -1,4 +1,3 @@
-use ndarray::Array2;
 use ndarray::ArrayView2;
 use ndarray::Axis;
 

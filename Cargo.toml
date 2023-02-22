@@ -7,6 +7,10 @@ edition = "2021"
 name = "toha_nearest_neighbor"
 crate-type = ["cdylib", "rlib"]
 
+# pybind.rs/brute_force for some reason is interpereted as a doctest
+# so we omit them all from running here
+doctest = false
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 ndarray = {version = "0.15.6", features = ["rayon"] }
