@@ -1,3 +1,4 @@
+use ndarray::Array2;
 use ndarray::ArrayView2;
 use ndarray::Axis;
 
@@ -6,23 +7,22 @@ use rayon::prelude::*;
 pub fn brute_force<'a, 'b>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
-) -> Vec<usize> {
-    points_to_match
-        .axis_iter(Axis(0))
-        .map(|point| {
-            let point_x = point[[0]];
-            let point_y = point[[1]];
+) -> Array2<f64> {
+    let points_iter = points_to_match.axis_iter(Axis(0)).map(|point| {
+        let point_x = point[[0]];
+        let point_y = point[[1]];
 
-            min_distance_to_point(line_points, point_x, point_y)
-        })
-        .collect()
+        min_distance_to_point(line_points, point_x, point_y)
+    });
+
+    super::arr2_from_iter_owned(points_iter, points_to_match.dim())
 }
 
 pub fn brute_force_par<'a, 'b>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
-) -> Vec<usize> {
-    points_to_match
+) -> Array2<f64> {
+    let points_vec: Vec<[f64; 2]> = points_to_match
         .axis_iter(Axis(0))
         .into_iter()
         .into_par_iter()
@@ -32,28 +32,31 @@ pub fn brute_force_par<'a, 'b>(
 
             min_distance_to_point(line_points, point_x, point_y)
         })
-        .collect()
+        .collect();
+
+    super::arr2_from_iter_owned(points_vec.into_iter(), points_to_match.dim())
 }
 
-fn min_distance_to_point(line_points: ArrayView2<'_, f64>, point_x: f64, point_y: f64) -> usize {
+fn min_distance_to_point(line_points: ArrayView2<'_, f64>, point_x: f64, point_y: f64) -> [f64; 2] {
     line_points
         .axis_iter(Axis(0))
-        .enumerate()
-        .map(|(idx, point_row)| {
+        .map(|point_row| {
             let line_x = point_row[[0]];
             let line_y = point_row[[1]];
 
+            let point = [line_x, line_y];
+
             let distance = (point_x - line_x).powi(2) + (point_y - line_y).powi(2);
-            (idx, distance)
+            (distance, point)
         })
         .reduce(minimize_float)
-        .map(|(idx, _distance)| idx)
+        .map(|(_distance, point_location)| point_location)
         .unwrap()
 }
 
-fn minimize_float(left: (usize, f64), right: (usize, f64)) -> (usize, f64) {
-    let left_float: f64 = left.1;
-    let right_float: f64 = right.1;
+fn minimize_float<'a>(left: (f64, [f64; 2]), right: (f64, [f64; 2])) -> (f64, [f64; 2]) {
+    let left_float: f64 = left.0;
+    let right_float: f64 = right.0;
 
     if left_float < right_float {
         left
@@ -83,8 +86,8 @@ mod tests {
 
     #[test]
     fn minimize_left() {
-        let left = (0, 0.);
-        let right = (1, 1.);
+        let left = (0., [0., 0.]);
+        let right = (1., [1., 1.]);
 
         let out = minimize_float(left, right);
 
@@ -93,8 +96,8 @@ mod tests {
 
     #[test]
     fn minimize_right() {
-        let left = (0, 1.);
-        let right = (1, 0.);
+        let left = (1., [0., 0.]);
+        let right = (0., [1., 1.]);
 
         let out = minimize_float(left, right);
 
@@ -103,8 +106,8 @@ mod tests {
 
     #[test]
     fn minimize_eq() {
-        let left = (0, 0.);
-        let right = (1, 0.);
+        let left = (0., [0., 0.]);
+        let right = (0., [1., 1.]);
 
         let out = minimize_float(left, right);
 
@@ -113,8 +116,8 @@ mod tests {
 
     #[test]
     fn minimize_left_nan() {
-        let left = (0, f64::NAN);
-        let right = (1, 0.);
+        let left = (f64::NAN, [0., 0.]);
+        let right = (0., [1., 1.]);
 
         let out = minimize_float(left, right);
 
@@ -123,8 +126,8 @@ mod tests {
 
     #[test]
     fn minimize_right_nan() {
-        let left = (0, 20.);
-        let right = (1, f64::NAN);
+        let left = (20., [0., 0.]);
+        let right = (f64::NAN, [1., 1.]);
 
         let out = minimize_float(left, right);
 
@@ -140,7 +143,7 @@ mod tests {
 
         let out = min_distance_to_point(line_points.view(), point_x, point_y);
 
-        assert_eq!(out, 1);
+        assert_eq!(out, [1.0, 0.0]);
     }
 
     #[test]

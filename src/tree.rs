@@ -12,8 +12,6 @@ pub fn kd_tree(
 ) -> Array2<f64> {
     let kdtree = assemble_tree(line_points);
 
-    let mut out = Array2::zeros(points_to_match.dim());
-
     let point_iter = points_to_match.axis_iter(Axis(0)).map(|point| {
         let point_x = point[[0]];
         let point_y = point[[1]];
@@ -23,12 +21,7 @@ pub fn kd_tree(
         item.item
     });
 
-    for (row, point) in point_iter.enumerate() {
-        out[[row, 0]] = point[0];
-        out[[row, 1]] = point[1];
-    }
-
-    out
+    super::arr2_from_iter(point_iter, points_to_match.dim())
 }
 
 pub fn kd_tree_par(
@@ -37,9 +30,7 @@ pub fn kd_tree_par(
 ) -> Array2<f64> {
     let kdtree = assemble_tree(line_points);
 
-    let mut out = Array2::zeros(points_to_match.dim());
-
-    let point_iter: Vec<[f64; 2]> = points_to_match
+    let points_vec: Vec<[f64; 2]> = points_to_match
         .axis_iter(Axis(0))
         .into_par_iter()
         .map(|point| {
@@ -53,12 +44,7 @@ pub fn kd_tree_par(
         // this allocation is not ideal here, but it seems to be unavoidable
         .collect();
 
-    for (row, point) in point_iter.into_iter().enumerate() {
-        out[[row, 0]] = point[0];
-        out[[row, 1]] = point[1];
-    }
-
-    out
+    super::arr2_from_iter_owned(points_vec.into_iter(), points_to_match.dim())
 }
 
 fn assemble_tree(line_points: ArrayView2<'_, f64>) -> KdTree<[f64; 2]> {

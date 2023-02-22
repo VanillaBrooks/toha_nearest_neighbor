@@ -16,6 +16,9 @@ point_cloud = np.array(
     ]
 )
                                                                     
-# output: [0, 2]
+# output: 
+# [[0. 0.]
+#  [2. 2.]]
 out = toha_nearest_neighbor.brute_force(line_points, point_cloud)
+out = toha_nearest_neighbor.kd_tree(line_points, point_cloud)
 print(out)
