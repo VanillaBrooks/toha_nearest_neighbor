@@ -21,6 +21,12 @@ impl Distance for super::SingleIndexDistance {
         self.distance
     }
 }
+    
+impl Distance for super::SingleIndexPointDistance {
+    fn distance(&self) -> f64 {
+        self.distance
+    }
+}
 
 /// Brute force the nearest neighbor problem with serial iteration
 ///
@@ -48,8 +54,9 @@ where
         let point_x = point[[0]];
         let point_y = point[[1]];
 
-        min_distance_to_point::<SINGLE>(line_points, [point_x, point_y])
-    });
+        min_distance_to_point::<SingleIndexPointDistance>(line_points, [point_x, point_y])
+    })
+    .map(SINGLE::from) ;
 
     ALL::from_shape_iter(points_iter, points_to_match.dim())
 }
