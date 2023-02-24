@@ -91,7 +91,7 @@ struct SinglePointDistanceRef<'a> {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-struct SinglePointDistance {
+pub struct SinglePointDistance {
     point: [f64; 2],
     distance: f64,
 }
@@ -104,7 +104,7 @@ pub struct SingleIndexPointDistance {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-struct SingleIndexDistance {
+pub struct SingleIndexDistance {
     index: usize,
     distance: f64,
 }

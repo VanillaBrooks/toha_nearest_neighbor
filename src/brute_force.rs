@@ -92,7 +92,7 @@ fn min_distance_to_point(
 
             let line_point = [line_x, line_y];
 
-            let distance = (point[0] - line_x).powi(2) + (point[1] - line_y).powi(2);
+            let distance = (point[0] - line_point[0]).powi(2) + (point[1] - line_point[1]).powi(2);
 
             SingleIndexPointDistance {
                 distance,
