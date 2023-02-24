@@ -90,13 +90,13 @@ struct SinglePointDistanceRef<'a> {
     distance: f64,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SinglePointDistance {
     point: [f64; 2],
     distance: f64,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct SingleIndexPointDistance {
     point: [f64; 2],
     index: usize,
