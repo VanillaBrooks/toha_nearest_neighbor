@@ -1,13 +1,10 @@
-use ndarray::Array2;
 use ndarray::ArrayView2;
 use ndarray::Axis;
 
 use rayon::prelude::*;
 
 use super::FromShapeIter;
-use super::LocationAndDistance;
 use super::SingleIndexPointDistance;
-use super::SinglePointDistance;
 
 pub fn brute_force<'a, 'b, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
@@ -111,6 +108,9 @@ mod tests {
     use super::*;
     use ndarray_rand::rand_distr::Uniform;
     use ndarray_rand::RandomExt;
+    use ndarray::Array2;
+    use crate::LocationAndDistance;
+    use crate::SinglePointDistance;
 
     #[test]
     fn minimize_left() {
@@ -217,8 +217,8 @@ mod tests {
 
     #[test]
     fn parallel_serial_same() {
-        let lines = ndarray::Array2::random((10000, 2), Uniform::new(0.0, 10.0));
-        let points = ndarray::Array2::random((3000, 2), Uniform::new(0.0, 10.0));
+        let lines = Array2::random((10000, 2), Uniform::new(0.0, 10.0));
+        let points = Array2::random((3000, 2), Uniform::new(0.0, 10.0));
 
         let out_brute = brute_force::<SinglePointDistance, LocationAndDistance>(lines.view(), points.view());
         let out_par = brute_force_par::<SinglePointDistance, LocationAndDistance>(lines.view(), points.view());

@@ -1,11 +1,9 @@
 mod brute_force;
-//mod pybind;
+mod pybind;
 mod tree;
 
-use std::iter::FromIterator;
-
 pub use brute_force::{brute_force, brute_force_par};
-pub use tree::{kd_tree, kd_tree_par};
+pub use tree::{kd_tree_location, kd_tree_location_par, kd_tree_index, kd_tree_index_par};
 
 use ndarray::Array1;
 use ndarray::Array2;
@@ -14,6 +12,30 @@ pub trait FromShapeIter<A> {
     fn from_shape_iter<T>(iter: T, cloud_shape: (usize, usize)) -> Self
     where
         T: IntoIterator<Item = A>;
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct IndexAndDistance {
+    pub index: Array1<usize>,
+    pub distance: Array1<f64>,
+}
+
+impl<'a> FromShapeIter<SingleIndexDistance> for IndexAndDistance {
+    fn from_shape_iter<T>(iter: T, cloud_shape: (usize, usize)) -> Self
+    where
+        T: IntoIterator<Item = SingleIndexDistance>,
+    {
+        let iter = iter.into_iter();
+        let mut index = Array1::zeros(cloud_shape.0);
+        let mut distance = Array1::zeros(cloud_shape.0);
+
+        for (row, point) in iter.enumerate() {
+            index[[row]] = point.index;
+            distance[[row]] = point.distance;
+        }
+
+        IndexAndDistance { index, distance }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
