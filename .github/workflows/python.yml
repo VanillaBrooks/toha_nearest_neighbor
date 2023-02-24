@@ -27,10 +27,14 @@ jobs:
         pip3 install .
         pip3 install numpy
         python3 src/validate_bindings.py
+    - name: list wheels
+      run: |
+        echo "contents of target/wheels"
+        ls target/wheels
     - name: Cache python wheels
-      uses: actions/cache@v3
+      uses: actions/cache/save@v3
       with:
-        key: python-wheels
+        key: ${{ runner.os }}-${{ hashFiles('**/*') }}
         path: |
           target/wheels
   release:
@@ -41,8 +45,12 @@ jobs:
     steps:
     - uses: actions/cache/restore@v3
       with:
-        key: python-wheels
+        key: ${{ runner.os }}-${{ hashFiles('**/*') }}
         path: target/wheels
+    - name: Verify output of cache
+      run: |
+        echo "contents of target/wheels"
+        ls target/wheels
     - uses: actions/setup-python@v4
       with:
         python-version: 3.9
