@@ -4,9 +4,40 @@ use ndarray::Axis;
 use rayon::prelude::*;
 
 use super::FromShapeIter;
-use super::SingleIndexPointDistance;
+use super::SingleIndexDistance;
+use super::SinglePointDistance;
+use super::LocationAndDistance;
+use super::IndexAndDistance;
 
-pub trait Distance {
+pub fn brute_force_location(
+    line_points: ArrayView2<'_, f64>,
+    points_to_match: ArrayView2<'_, f64>,
+) -> LocationAndDistance {
+    brute_force::<SinglePointDistance, LocationAndDistance>(line_points, points_to_match)
+}
+
+pub fn brute_force_index(
+    line_points: ArrayView2<'_, f64>,
+    points_to_match: ArrayView2<'_, f64>,
+) -> IndexAndDistance{
+    brute_force::<SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
+}
+
+pub fn brute_force_location_par(
+    line_points: ArrayView2<'_, f64>,
+    points_to_match: ArrayView2<'_, f64>,
+) -> LocationAndDistance {
+    brute_force_par::<SinglePointDistance, LocationAndDistance>(line_points, points_to_match)
+}
+
+pub fn brute_force_index_par(
+    line_points: ArrayView2<'_, f64>,
+    points_to_match: ArrayView2<'_, f64>,
+) -> IndexAndDistance{
+    brute_force_par::<SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
+}
+
+trait Distance {
     fn distance(&self) -> f64;
 }
 
@@ -17,12 +48,6 @@ impl Distance for super::SinglePointDistance {
 }
 
 impl Distance for super::SingleIndexDistance {
-    fn distance(&self) -> f64 {
-        self.distance
-    }
-}
-    
-impl Distance for super::SingleIndexPointDistance {
     fn distance(&self) -> f64 {
         self.distance
     }
@@ -42,21 +67,22 @@ impl Distance for super::SingleIndexPointDistance {
 ///
 /// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
 /// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
-pub fn brute_force<'a, 'b, SINGLE, ALL>(
+fn brute_force<'a, 'b, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
 ) -> ALL
 where
-    SINGLE: From<SingleIndexPointDistance> + Distance,
+    SINGLE: From<(SingleIndexDistance, ArrayView2<'a, f64>)>,
     ALL: FromShapeIter<SINGLE>,
 {
     let points_iter = points_to_match.axis_iter(Axis(0)).map(|point| {
         let point_x = point[[0]];
         let point_y = point[[1]];
 
-        min_distance_to_point::<SingleIndexPointDistance>(line_points, [point_x, point_y])
-    })
-    .map(SINGLE::from) ;
+        let min_distance = min_distance_to_point(line_points, [point_x, point_y]);
+        SINGLE::from((min_distance, line_points))
+
+    });
 
     ALL::from_shape_iter(points_iter, points_to_match.dim())
 }
@@ -75,12 +101,12 @@ where
 ///
 /// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
 /// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
-pub fn brute_force_par<'a, 'b, SINGLE, ALL>(
+fn brute_force_par<'a, 'b, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
 ) -> ALL
 where
-    SINGLE: From<SingleIndexPointDistance> + Send + Distance,
+    SINGLE: From<(SingleIndexDistance, ArrayView2<'a, f64>)> + Send,
     ALL: FromShapeIter<SINGLE>,
 {
     let points_vec: Vec<_> = points_to_match
@@ -91,17 +117,18 @@ where
             let point_x = point[[0]];
             let point_y = point[[1]];
 
-            min_distance_to_point::<SINGLE>(line_points, [point_x, point_y])
+            let min_distance = min_distance_to_point(line_points, [point_x, point_y]);
+            SINGLE::from((min_distance, line_points))
         })
         .collect();
 
     ALL::from_shape_iter(points_vec, points_to_match.dim())
 }
 
-fn min_distance_to_point<SINGLE: From<SingleIndexPointDistance> + Distance>(
+fn min_distance_to_point(
     line_points: ArrayView2<'_, f64>,
     point: [f64; 2],
-) -> SINGLE {
+) -> SingleIndexDistance {
     line_points
         .axis_iter(Axis(0))
         .enumerate()
@@ -113,13 +140,10 @@ fn min_distance_to_point<SINGLE: From<SingleIndexPointDistance> + Distance>(
 
             let distance = (point[0] - line_point[0]).powi(2) + (point[1] - line_point[1]).powi(2);
 
-            let full = SingleIndexPointDistance {
+            SingleIndexDistance {
                 distance,
-                point: line_point,
                 index,
-            };
-
-            SINGLE::from(full)
+            }
         })
         .reduce(minimize_float)
         .unwrap()
@@ -138,11 +162,7 @@ fn minimize_float<T: Distance>(left: T, right: T) -> T {
         if left_float.is_nan() && !right_float.is_nan() {
             right
         }
-        // the right float is NAN and the left float is fine
-        else if right_float.is_nan() && !left_float.is_nan() {
-            left
-        }
-        // both are NAN, just return the left one
+        // the right float is NAN and the left float is fine (identical to `else` case)
         else {
             left
         }
@@ -244,7 +264,8 @@ mod tests {
 
         let point = [1.1, 0.1];
 
-        let out = min_distance_to_point::<SinglePointDistance>(line_points.view(), point);
+        let out = min_distance_to_point(line_points.view(), point);
+        let out = crate::SinglePointDistance::from((out, line_points.view()));
 
         assert_eq!(out.point, [1.0, 0.0]);
     }

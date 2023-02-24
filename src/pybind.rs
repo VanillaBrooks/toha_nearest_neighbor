@@ -3,8 +3,6 @@ use numpy::PyArray2;
 use numpy::PyReadonlyArray2;
 use pyo3::prelude::*;
 
-use super::{IndexAndDistance, LocationAndDistance, SingleIndexDistance, SinglePointDistance};
-
 #[pyfunction]
 #[pyo3(signature = (line_points, point_cloud, parallel = false))]
 /// For every point in ``point_cloud``, find it's nearest neighbor in ``line_points`` using a
@@ -55,12 +53,12 @@ fn brute_force_location<'a>(
     parallel: bool,
 ) -> (&'a PyArray2<f64>, &'a PyArray1<f64>) {
     let location_and_distance = if parallel {
-        super::brute_force_par::<SinglePointDistance, LocationAndDistance>(
+        super::brute_force_location_par(
             line_points.as_array(),
             point_cloud.as_array(),
         )
     } else {
-        super::brute_force::<SinglePointDistance, LocationAndDistance>(
+        super::brute_force_location(
             line_points.as_array(),
             point_cloud.as_array(),
         )
@@ -121,12 +119,12 @@ fn brute_force_index<'a>(
     parallel: bool,
 ) -> (&'a PyArray1<usize>, &'a PyArray1<f64>) {
     let index_and_distance = if parallel {
-        super::brute_force_par::<SingleIndexDistance, IndexAndDistance>(
+        super::brute_force_index_par(
             line_points.as_array(),
             point_cloud.as_array(),
         )
     } else {
-        super::brute_force::<SingleIndexDistance, IndexAndDistance>(
+        super::brute_force_index(
             line_points.as_array(),
             point_cloud.as_array(),
         )

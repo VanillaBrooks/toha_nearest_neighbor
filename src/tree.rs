@@ -195,7 +195,7 @@ mod test {
         let points = Array2::random((100, 2), Uniform::new(0.0, 10.0));
 
         let out_kd = kd_tree_location(lines.view(), points.view());
-        let out_brute = crate::brute_force::<SinglePointDistance, _>(lines.view(), points.view());
+        let out_brute = crate::brute_force_location(lines.view(), points.view());
 
         assert_eq!(out_kd, out_brute);
     }

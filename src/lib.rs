@@ -2,7 +2,7 @@ mod brute_force;
 mod pybind;
 mod tree;
 
-pub use brute_force::{brute_force, brute_force_par};
+pub use brute_force::{brute_force_location, brute_force_index, brute_force_index_par, brute_force_location_par};
 pub use tree::{kd_tree_index, kd_tree_index_par, kd_tree_location, kd_tree_location_par};
 
 use ndarray::Array1;
@@ -20,7 +20,7 @@ pub struct IndexAndDistance {
     pub distance: Array1<f64>,
 }
 
-impl<'a> FromShapeIter<SingleIndexDistance> for IndexAndDistance {
+impl FromShapeIter<SingleIndexDistance> for IndexAndDistance {
     fn from_shape_iter<T>(iter: T, cloud_shape: (usize, usize)) -> Self
     where
         T: IntoIterator<Item = SingleIndexDistance>,
@@ -91,42 +91,42 @@ struct SinglePointDistanceRef<'a> {
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct SinglePointDistance {
+struct SinglePointDistance {
     point: [f64; 2],
     distance: f64,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct SingleIndexPointDistance {
-    point: [f64; 2],
-    index: usize,
-    distance: f64,
-}
+impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SinglePointDistance {
+    fn from(x: (SingleIndexDistance, ndarray::ArrayView2<'_, f64>)) -> Self {
+        let (point_distance, array) = x;
+        let point = unsafe {
+            let x = array.uget([point_distance.index, 0]);
+            let y = array.uget([point_distance.index, 1]);
+            [*x,*y]
+        };
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct SingleIndexDistance {
-    index: usize,
-    distance: f64,
-}
-
-impl From<SingleIndexPointDistance> for SingleIndexDistance {
-    fn from(x: SingleIndexPointDistance) -> Self {
-        let SingleIndexPointDistance {
-            index,
-            distance,
-            point: _,
-        } = x;
-        Self { index, distance }
+        SinglePointDistance {
+            point,
+            distance: point_distance.distance
+        }
     }
 }
 
-impl From<SingleIndexPointDistance> for SinglePointDistance {
-    fn from(x: SingleIndexPointDistance) -> Self {
-        let SingleIndexPointDistance {
-            index: _,
-            distance,
-            point,
-        } = x;
-        Self { point, distance }
+#[derive(Debug, PartialEq, Clone)]
+struct SingleIndexPointDistance {
+    point: [f64; 2],
+    index: usize,
+    distance: f64,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+struct SingleIndexDistance {
+    index: usize,
+    distance: f64,
+}
+
+impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SingleIndexDistance {
+    fn from(x: (SingleIndexDistance, ndarray::ArrayView2<'_, f64>)) -> Self {
+        x.0
     }
 }
