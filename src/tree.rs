@@ -13,6 +13,16 @@ use super::SingleIndexDistance;
 use super::SinglePointDistance;
 use super::SinglePointDistanceRef;
 
+/// KD-Tree solution to the nearest neighbor problem with serial iteration
+///
+/// ## Parameters 
+///
+/// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
+/// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
+/// location floats) that will be matched against all rows of `line_points` (in the same format)
+/// to find the minimum distance.
+///
+/// Returns information on the location of the closest point and its distance.
 pub fn kd_tree_location(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
@@ -33,6 +43,16 @@ pub fn kd_tree_location(
     LocationAndDistance::from_shape_iter(point_iter, points_to_match.dim())
 }
 
+/// KD-Tree solution to the nearest neighbor problem with serial iteration
+///
+/// ## Parameters 
+///
+/// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
+/// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
+/// location floats) that will be matched against all rows of `line_points` (in the same format)
+/// to find the minimum distance.
+///
+/// Returns information on the row-index of the closest point and its distance.
 pub fn kd_tree_index(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
@@ -53,6 +73,16 @@ pub fn kd_tree_index(
     IndexAndDistance::from_shape_iter(point_iter, points_to_match.dim())
 }
 
+/// KD-Tree solution to the nearest neighbor problem with parallel iteration
+///
+/// ## Parameters 
+///
+/// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
+/// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
+/// location floats) that will be matched against all rows of `line_points` (in the same format)
+/// to find the minimum distance.
+///
+/// Returns information on the location of the closest point and its distance.
 pub fn kd_tree_location_par(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
@@ -77,6 +107,16 @@ pub fn kd_tree_location_par(
     LocationAndDistance::from_shape_iter(points_vec, points_to_match.dim())
 }
 
+/// KD-Tree solution to the nearest neighbor problem with parallel iteration
+///
+/// ## Parameters 
+///
+/// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
+/// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
+/// location floats) that will be matched against all rows of `line_points` (in the same format)
+/// to find the minimum distance.
+///
+/// Returns information on the row-index of the closest point and its distance.
 pub fn kd_tree_index_par(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,

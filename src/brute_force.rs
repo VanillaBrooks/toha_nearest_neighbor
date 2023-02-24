@@ -6,6 +6,20 @@ use rayon::prelude::*;
 use super::FromShapeIter;
 use super::SingleIndexPointDistance;
 
+/// Brute force the nearest neighbor problem with serial iteration
+///
+/// ## Parameters 
+///
+/// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
+/// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
+/// location floats) that will be matched against all rows of `line_points` (in the same format)
+/// to find the minimum distance.
+///
+/// `SINGLE` is the type description for a single datapoint (its index and distance, or its point
+/// location and distance). `ALL` is the collection of all `SINGLE` points to an array format.
+///
+/// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
+/// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
 pub fn brute_force<'a, 'b, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
@@ -27,6 +41,20 @@ where
     ALL::from_shape_iter(points_iter, points_to_match.dim())
 }
 
+/// Brute force the nearest neighbor problem with parallel iteration
+///
+/// ## Parameters 
+///
+/// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
+/// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
+/// location floats) that will be matched against all rows of `line_points` (in the same format)
+/// to find the minimum distance.
+///
+/// `SINGLE` is the type description for a single datapoint (its index and distance, or its point
+/// location and distance). `ALL` is the collection of all `SINGLE` points to an array format.
+///
+/// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
+/// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
 pub fn brute_force_par<'a, 'b, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
