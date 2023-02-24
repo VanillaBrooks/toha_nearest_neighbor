@@ -96,6 +96,22 @@ pub struct SinglePointDistance {
     distance: f64,
 }
 
+impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SinglePointDistance {
+    fn from(x: (SingleIndexDistance, ndarray::ArrayView2<'_, f64>)) -> Self {
+        let (point_distance, array) = x;
+        let point = unsafe {
+            let x = array.uget([point_distance.index, 0]);
+            let y = array.uget([point_distance.index, 1]);
+            [*x,*y]
+        };
+
+        SinglePointDistance {
+            point,
+            distance: point_distance.distance
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct SingleIndexPointDistance {
     point: [f64; 2],
@@ -107,6 +123,12 @@ pub struct SingleIndexPointDistance {
 pub struct SingleIndexDistance {
     index: usize,
     distance: f64,
+}
+
+impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SingleIndexDistance {
+    fn from(x: (SingleIndexDistance, ndarray::ArrayView2<'_, f64>)) -> Self {
+        x.0
+    }
 }
 
 impl From<SingleIndexPointDistance> for SingleIndexDistance {
