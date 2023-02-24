@@ -1,28 +1,69 @@
-use ndarray::Array2;
 use ndarray::ArrayView2;
 use ndarray::Axis;
 
 use rayon::prelude::*;
 
-pub fn brute_force<'a, 'b>(
+use super::FromShapeIter;
+use super::SingleIndexPointDistance;
+
+/// Brute force the nearest neighbor problem with serial iteration
+///
+/// ## Parameters
+///
+/// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
+/// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
+/// location floats) that will be matched against all rows of `line_points` (in the same format)
+/// to find the minimum distance.
+///
+/// `SINGLE` is the type description for a single datapoint (its index and distance, or its point
+/// location and distance). `ALL` is the collection of all `SINGLE` points to an array format.
+///
+/// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
+/// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
+pub fn brute_force<'a, 'b, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
-) -> Array2<f64> {
-    let points_iter = points_to_match.axis_iter(Axis(0)).map(|point| {
-        let point_x = point[[0]];
-        let point_y = point[[1]];
+) -> ALL
+where
+    SINGLE: From<SingleIndexPointDistance>,
+    ALL: FromShapeIter<SINGLE>,
+{
+    let points_iter = points_to_match
+        .axis_iter(Axis(0))
+        .map(|point| {
+            let point_x = point[[0]];
+            let point_y = point[[1]];
 
-        min_distance_to_point(line_points, point_x, point_y)
-    });
+            min_distance_to_point(line_points, [point_x, point_y])
+        })
+        .map(SINGLE::from);
 
-    super::arr2_from_iter_owned(points_iter, points_to_match.dim())
+    ALL::from_shape_iter(points_iter, points_to_match.dim())
 }
 
-pub fn brute_force_par<'a, 'b>(
+/// Brute force the nearest neighbor problem with parallel iteration
+///
+/// ## Parameters
+///
+/// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
+/// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
+/// location floats) that will be matched against all rows of `line_points` (in the same format)
+/// to find the minimum distance.
+///
+/// `SINGLE` is the type description for a single datapoint (its index and distance, or its point
+/// location and distance). `ALL` is the collection of all `SINGLE` points to an array format.
+///
+/// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
+/// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
+pub fn brute_force_par<'a, 'b, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
-) -> Array2<f64> {
-    let points_vec: Vec<[f64; 2]> = points_to_match
+) -> ALL
+where
+    SINGLE: From<SingleIndexPointDistance> + Send,
+    ALL: FromShapeIter<SINGLE>,
+{
+    let points_vec: Vec<_> = points_to_match
         .axis_iter(Axis(0))
         .into_iter()
         .into_par_iter()
@@ -30,33 +71,45 @@ pub fn brute_force_par<'a, 'b>(
             let point_x = point[[0]];
             let point_y = point[[1]];
 
-            min_distance_to_point(line_points, point_x, point_y)
+            min_distance_to_point(line_points, [point_x, point_y])
         })
+        .map(SINGLE::from)
         .collect();
 
-    super::arr2_from_iter_owned(points_vec.into_iter(), points_to_match.dim())
+    ALL::from_shape_iter(points_vec, points_to_match.dim())
 }
 
-fn min_distance_to_point(line_points: ArrayView2<'_, f64>, point_x: f64, point_y: f64) -> [f64; 2] {
+fn min_distance_to_point(
+    line_points: ArrayView2<'_, f64>,
+    point: [f64; 2],
+) -> SingleIndexPointDistance {
     line_points
         .axis_iter(Axis(0))
-        .map(|point_row| {
+        .enumerate()
+        .map(|(index, point_row)| {
             let line_x = point_row[[0]];
             let line_y = point_row[[1]];
 
-            let point = [line_x, line_y];
+            let line_point = [line_x, line_y];
 
-            let distance = (point_x - line_x).powi(2) + (point_y - line_y).powi(2);
-            (distance, point)
+            let distance = (point[0] - line_point[0]).powi(2) + (point[1] - line_point[1]).powi(2);
+
+            SingleIndexPointDistance {
+                distance,
+                point: line_point,
+                index,
+            }
         })
         .reduce(minimize_float)
-        .map(|(_distance, point_location)| point_location)
         .unwrap()
 }
 
-fn minimize_float<'a>(left: (f64, [f64; 2]), right: (f64, [f64; 2])) -> (f64, [f64; 2]) {
-    let left_float: f64 = left.0;
-    let right_float: f64 = right.0;
+fn minimize_float(
+    left: SingleIndexPointDistance,
+    right: SingleIndexPointDistance,
+) -> SingleIndexPointDistance {
+    let left_float: f64 = left.distance;
+    let right_float: f64 = right.distance;
 
     if left_float < right_float {
         left
@@ -81,13 +134,24 @@ fn minimize_float<'a>(left: (f64, [f64; 2]), right: (f64, [f64; 2])) -> (f64, [f
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::LocationAndDistance;
+    use crate::SinglePointDistance;
+    use ndarray::Array2;
     use ndarray_rand::rand_distr::Uniform;
     use ndarray_rand::RandomExt;
 
     #[test]
     fn minimize_left() {
-        let left = (0., [0., 0.]);
-        let right = (1., [1., 1.]);
+        let left = SingleIndexPointDistance {
+            index: 0,
+            distance: 0.,
+            point: [0., 0.],
+        };
+        let right = SingleIndexPointDistance {
+            index: 1,
+            distance: 1.,
+            point: [1., 1.],
+        };
 
         let out = minimize_float(left, right);
 
@@ -96,8 +160,16 @@ mod tests {
 
     #[test]
     fn minimize_right() {
-        let left = (1., [0., 0.]);
-        let right = (0., [1., 1.]);
+        let left = SingleIndexPointDistance {
+            index: 0,
+            distance: 1.,
+            point: [0., 0.],
+        };
+        let right = SingleIndexPointDistance {
+            index: 1,
+            distance: 0.,
+            point: [1., 1.],
+        };
 
         let out = minimize_float(left, right);
 
@@ -106,8 +178,16 @@ mod tests {
 
     #[test]
     fn minimize_eq() {
-        let left = (0., [0., 0.]);
-        let right = (0., [1., 1.]);
+        let left = SingleIndexPointDistance {
+            index: 0,
+            distance: 0.,
+            point: [0., 0.],
+        };
+        let right = SingleIndexPointDistance {
+            index: 1,
+            distance: 0.,
+            point: [1., 1.],
+        };
 
         let out = minimize_float(left, right);
 
@@ -116,8 +196,16 @@ mod tests {
 
     #[test]
     fn minimize_left_nan() {
-        let left = (f64::NAN, [0., 0.]);
-        let right = (0., [1., 1.]);
+        let left = SingleIndexPointDistance {
+            index: 0,
+            distance: f64::NAN,
+            point: [0., 0.],
+        };
+        let right = SingleIndexPointDistance {
+            index: 1,
+            distance: 0.,
+            point: [1., 1.],
+        };
 
         let out = minimize_float(left, right);
 
@@ -126,8 +214,16 @@ mod tests {
 
     #[test]
     fn minimize_right_nan() {
-        let left = (20., [0., 0.]);
-        let right = (f64::NAN, [1., 1.]);
+        let left = SingleIndexPointDistance {
+            index: 0,
+            distance: 20.,
+            point: [0., 0.],
+        };
+        let right = SingleIndexPointDistance {
+            index: 1,
+            distance: f64::NAN,
+            point: [1., 1.],
+        };
 
         let out = minimize_float(left, right);
 
@@ -138,21 +234,25 @@ mod tests {
     fn nearest_neighbor_single() {
         let line_points = ndarray::arr2(&[[0.0, 0.0], [1.0, 0.0], [2.0, 1.0], [3.0, 2.0]]);
 
-        let point_x = 1.1;
-        let point_y = 0.1;
+        let point = [1.1, 0.1];
 
-        let out = min_distance_to_point(line_points.view(), point_x, point_y);
+        let out = min_distance_to_point(line_points.view(), point);
 
-        assert_eq!(out, [1.0, 0.0]);
+        assert_eq!(out.point, [1.0, 0.0]);
+        assert_eq!(out.index, 1);
     }
 
     #[test]
     fn parallel_serial_same() {
-        let lines = ndarray::Array2::random((10000, 2), Uniform::new(0.0, 10.0));
-        let points = ndarray::Array2::random((3000, 2), Uniform::new(0.0, 10.0));
+        let lines = Array2::random((10000, 2), Uniform::new(0.0, 10.0));
+        let points = Array2::random((3000, 2), Uniform::new(0.0, 10.0));
 
-        let out_brute = brute_force(lines.view(), points.view());
-        let out_par = brute_force_par(lines.view(), points.view());
+        let out_brute =
+            brute_force::<SinglePointDistance, LocationAndDistance>(lines.view(), points.view());
+        let out_par = brute_force_par::<SinglePointDistance, LocationAndDistance>(
+            lines.view(),
+            points.view(),
+        );
 
         assert_eq!(out_brute, out_par);
     }
