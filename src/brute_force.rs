@@ -9,30 +9,30 @@ use super::SinglePointDistance;
 use super::LocationAndDistance;
 use super::IndexAndDistance;
 
-pub fn brute_force_location<'a, 'b>(
-    line_points: ArrayView2<'a, f64>,
-    points_to_match: ArrayView2<'b, f64>,
+pub fn brute_force_location(
+    line_points: ArrayView2<'_, f64>,
+    points_to_match: ArrayView2<'_, f64>,
 ) -> LocationAndDistance {
     brute_force::<SinglePointDistance, LocationAndDistance>(line_points, points_to_match)
 }
 
-pub fn brute_force_index<'a, 'b>(
-    line_points: ArrayView2<'a, f64>,
-    points_to_match: ArrayView2<'b, f64>,
+pub fn brute_force_index(
+    line_points: ArrayView2<'_, f64>,
+    points_to_match: ArrayView2<'_, f64>,
 ) -> IndexAndDistance{
     brute_force::<SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
 }
 
-pub fn brute_force_location_par<'a, 'b>(
-    line_points: ArrayView2<'a, f64>,
-    points_to_match: ArrayView2<'b, f64>,
+pub fn brute_force_location_par(
+    line_points: ArrayView2<'_, f64>,
+    points_to_match: ArrayView2<'_, f64>,
 ) -> LocationAndDistance {
     brute_force_par::<SinglePointDistance, LocationAndDistance>(line_points, points_to_match)
 }
 
-pub fn brute_force_index_par<'a, 'b>(
-    line_points: ArrayView2<'a, f64>,
-    points_to_match: ArrayView2<'b, f64>,
+pub fn brute_force_index_par(
+    line_points: ArrayView2<'_, f64>,
+    points_to_match: ArrayView2<'_, f64>,
 ) -> IndexAndDistance{
     brute_force_par::<SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
 }
@@ -162,11 +162,7 @@ fn minimize_float<T: Distance>(left: T, right: T) -> T {
         if left_float.is_nan() && !right_float.is_nan() {
             right
         }
-        // the right float is NAN and the left float is fine
-        else if right_float.is_nan() && !left_float.is_nan() {
-            left
-        }
-        // both are NAN, just return the left one
+        // the right float is NAN and the left float is fine (identical to `else` case)
         else {
             left
         }

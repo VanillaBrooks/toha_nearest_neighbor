@@ -1,6 +1,3 @@
-use toha::brute_force;
-use toha::brute_force_par;
-use toha::{IndexAndDistance, LocationAndDistance, SingleIndexDistance, SinglePointDistance};
 use toha_nearest_neighbor as toha;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
@@ -30,7 +27,7 @@ fn serial(c: &mut Criterion) {
 
         c.bench_function(&name, |b| {
             b.iter(|| {
-                black_box(brute_force::<SinglePointDistance, LocationAndDistance>(
+                black_box(toha::brute_force_location(
                     lines.view(),
                     points.view(),
                 ))
@@ -43,7 +40,7 @@ fn serial(c: &mut Criterion) {
 
         c.bench_function(&name, |b| {
             b.iter(|| {
-                black_box(brute_force::<SingleIndexDistance, IndexAndDistance>(
+                black_box(toha::brute_force_index(
                     lines.view(),
                     points.view(),
                 ))
@@ -56,11 +53,11 @@ fn parallel(c: &mut Criterion) {
     for (line_ct, cloud_ct) in LINE_POINTS.into_iter().zip(CLOUD_POINTS) {
         let (lines, points) = create_data(line_ct * 1000, cloud_ct * 1000);
         let name =
-            format!("brute force | parallel | {line_ct}k line points |  {cloud_ct}k cloud points");
+            format!("brute force location | parallel | {line_ct}k line points |  {cloud_ct}k cloud points");
 
         c.bench_function(&name, |b| {
             b.iter(|| {
-                black_box(brute_force_par::<SingleIndexDistance, IndexAndDistance>(
+                black_box(toha::brute_force_location_par(
                     lines.view(),
                     points.view(),
                 ));
@@ -73,7 +70,7 @@ fn parallel(c: &mut Criterion) {
 
         c.bench_function(&name, |b| {
             b.iter(|| {
-                black_box(brute_force_par::<SingleIndexDistance, IndexAndDistance>(
+                black_box(toha::brute_force_index_par(
                     lines.view(),
                     points.view(),
                 ))

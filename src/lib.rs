@@ -20,7 +20,7 @@ pub struct IndexAndDistance {
     pub distance: Array1<f64>,
 }
 
-impl<'a> FromShapeIter<SingleIndexDistance> for IndexAndDistance {
+impl FromShapeIter<SingleIndexDistance> for IndexAndDistance {
     fn from_shape_iter<T>(iter: T, cloud_shape: (usize, usize)) -> Self
     where
         T: IntoIterator<Item = SingleIndexDistance>,
