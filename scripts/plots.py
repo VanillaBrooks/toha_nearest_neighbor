@@ -12,6 +12,18 @@ def create_data(line_ct: int, point_ct: int) -> Tuple[np.ndarray, np.ndarray]:
 
     return line_pts, cloud_pts 
 
+def bench_numpy_brute(lines: np.ndarray, cloud: np.ndarray):
+    out_array = np.zeros(cloud.shape[0])
+
+    for row in range(cloud.shape[0]):
+        diff = lines - cloud[row, :]
+        mag = np.linalg.norm(diff, axis=1)
+
+        min_distance = np.argmin(mag)
+        out_array[row] = min_distance
+
+    return out_array
+
 def bench_scikit(lines: np.ndarray, cloud: np.ndarray, algorithm: str):
     nbrs = NearestNeighbors(n_neighbors=1, algorithm=algorithm).fit(lines)
     distances, indices = nbrs.kneighbors(cloud)
@@ -48,67 +60,77 @@ def bench_helper(fn, output_list: list[float]):
     output_list.append(out_mean)
 
 
-line_sizes = [100, 500, 1000, 5_000, 10_000, 15_000, 20_000, 30_000]
-cloud_sizes = line_sizes.copy()
+def bench_all():
+    line_sizes = [100, 500, 1000, 5_000, 10_000, 15_000, 20_000, 30_000]
+    #line_sizes = [100, 500, 1000]
+    cloud_sizes = line_sizes.copy()
 
-scikit_brute = []
-scikit_kd = []
-rust_brute = []
-rust_kd = []
-rust_brute_par = []
-rust_kd_par = []
+    numpy_brute= []
+    scikit_brute = []
+    scikit_kd = []
+    rust_brute = []
+    rust_kd = []
+    rust_brute_par = []
+    rust_kd_par = []
 
-xs = []
+    xs = []
 
-for (line_size, cloud_size) in zip(line_sizes, cloud_sizes):
-    lines, clouds = create_data(line_size, cloud_size)
+    for (line_size, cloud_size) in zip(line_sizes, cloud_sizes):
+        lines, clouds = create_data(line_size, cloud_size)
 
-    xs.append(line_size * cloud_size)
+        xs.append(line_size * cloud_size)
 
-    # scikit brute
-    l = lambda : bench_scikit(lines, clouds, "brute")
-    bench_helper(l, scikit_brute)
+        # numpy brute
+        l = lambda : bench_numpy_brute(lines, clouds)
+        bench_helper(l, numpy_brute)
 
-    # scikit kd
-    l = lambda : bench_scikit(lines, clouds, "kd_tree")
-    bench_helper(l, scikit_kd)
+        # scikit brute
+        l = lambda : bench_scikit(lines, clouds, "brute")
+        bench_helper(l, scikit_brute)
 
-    # rust brute serial
-    l = lambda : bench_rust_brute(lines, clouds, False)
-    bench_helper(l, rust_brute)
+        # scikit kd
+        l = lambda : bench_scikit(lines, clouds, "kd_tree")
+        bench_helper(l, scikit_kd)
 
-    # rust kd serial
-    l = lambda : bench_rust_kd(lines, clouds, False)
-    bench_helper(l, rust_kd)
+        # rust brute serial
+        l = lambda : bench_rust_brute(lines, clouds, False)
+        bench_helper(l, rust_brute)
 
-    # rust brute parallel
-    l = lambda : bench_rust_brute(lines, clouds, True)
-    bench_helper(l, rust_brute_par)
+        # rust kd serial
+        l = lambda : bench_rust_kd(lines, clouds, False)
+        bench_helper(l, rust_kd)
 
-    # rust kd parallel
-    l = lambda : bench_rust_kd(lines, clouds, True)
-    bench_helper(l, rust_kd_par)
+        # rust brute parallel
+        l = lambda : bench_rust_brute(lines, clouds, True)
+        bench_helper(l, rust_brute_par)
 
-    print(f"finished size {line_size} | {cloud_size}")
+        # rust kd parallel
+        l = lambda : bench_rust_kd(lines, clouds, True)
+        bench_helper(l, rust_kd_par)
 
-
-
-fig = plt.figure(figsize = (8, 6), dpi=300)
-ax = fig.add_subplot(1, 1, 1)
-ax.set_xlabel("total point size (num neighbors * num point cloud)")
-ax.set_ylabel("runtime [s]")
-
-ax.set_yscale('log')
-ax.set_xscale('log')
+        print(f"finished size {line_size} | {cloud_size}")
 
 
-ax.plot(xs, scikit_brute, label = "scikit brute", color = "red")
-ax.plot(xs, scikit_kd, label = "scikit kd", color = "blue")
-ax.plot(xs, rust_brute, label = "rust brute", color = "red", linestyle="dotted")
-ax.plot(xs, rust_kd, label = "rust kd", color = "blue", linestyle="dotted")
-ax.plot(xs, rust_brute_par, label = "rust brute parallel", color = "red", linestyle = "dashed")
-ax.plot(xs, rust_kd_par, label = "rust kd parallel", color = "blue", linestyle = "dashed")
 
-plt.legend()
+    fig = plt.figure(figsize = (8, 6), dpi=300)
+    ax = fig.add_subplot(1, 1, 1)
+    ax.set_xlabel("total point size (num neighbors * num point cloud)")
+    ax.set_ylabel("runtime [s]")
 
-plt.savefig("./static/benchmarks.png", bbox_inches="tight")
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+
+    ax.plot(xs, numpy_brute, label = "numpy brute", color = "red", linestyle = "dashdot")
+    ax.plot(xs, scikit_brute, label = "scikit brute", color = "red")
+    ax.plot(xs, scikit_kd, label = "scikit kd", color = "blue")
+    ax.plot(xs, rust_brute, label = "rust brute", color = "red", linestyle="dotted")
+    ax.plot(xs, rust_kd, label = "rust kd", color = "blue", linestyle="dotted")
+    ax.plot(xs, rust_brute_par, label = "rust brute parallel", color = "red", linestyle = "dashed")
+    ax.plot(xs, rust_kd_par, label = "rust kd parallel", color = "blue", linestyle = "dashed")
+
+    plt.legend()
+
+    plt.savefig("./static/benchmarks.png", bbox_inches="tight")
+
+
+bench_all()
