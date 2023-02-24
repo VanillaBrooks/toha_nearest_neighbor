@@ -1,9 +1,9 @@
-use numpy::PyArray2;
 use numpy::PyArray1;
+use numpy::PyArray2;
 use numpy::PyReadonlyArray2;
 use pyo3::prelude::*;
 
-use super::{LocationAndDistance, IndexAndDistance, SinglePointDistance, SingleIndexDistance};
+use super::{IndexAndDistance, LocationAndDistance, SingleIndexDistance, SinglePointDistance};
 
 #[pyfunction]
 #[pyo3(signature = (line_points, point_cloud, parallel = false))]
@@ -55,9 +55,15 @@ fn brute_force_location<'a>(
     parallel: bool,
 ) -> (&'a PyArray2<f64>, &'a PyArray1<f64>) {
     let location_and_distance = if parallel {
-        super::brute_force_par::<SinglePointDistance, LocationAndDistance>(line_points.as_array(), point_cloud.as_array())
+        super::brute_force_par::<SinglePointDistance, LocationAndDistance>(
+            line_points.as_array(),
+            point_cloud.as_array(),
+        )
     } else {
-        super::brute_force::<SinglePointDistance, LocationAndDistance>(line_points.as_array(), point_cloud.as_array())
+        super::brute_force::<SinglePointDistance, LocationAndDistance>(
+            line_points.as_array(),
+            point_cloud.as_array(),
+        )
     };
 
     let loc = PyArray2::from_owned_array(py, location_and_distance.location);
@@ -115,9 +121,15 @@ fn brute_force_index<'a>(
     parallel: bool,
 ) -> (&'a PyArray1<usize>, &'a PyArray1<f64>) {
     let index_and_distance = if parallel {
-        super::brute_force_par::<SingleIndexDistance, IndexAndDistance>(line_points.as_array(), point_cloud.as_array())
+        super::brute_force_par::<SingleIndexDistance, IndexAndDistance>(
+            line_points.as_array(),
+            point_cloud.as_array(),
+        )
     } else {
-        super::brute_force::<SingleIndexDistance, IndexAndDistance>(line_points.as_array(), point_cloud.as_array())
+        super::brute_force::<SingleIndexDistance, IndexAndDistance>(
+            line_points.as_array(),
+            point_cloud.as_array(),
+        )
     };
 
     let index = PyArray1::from_owned_array(py, index_and_distance.index);

@@ -3,7 +3,7 @@ mod pybind;
 mod tree;
 
 pub use brute_force::{brute_force, brute_force_par};
-pub use tree::{kd_tree_location, kd_tree_location_par, kd_tree_index, kd_tree_index_par};
+pub use tree::{kd_tree_index, kd_tree_index_par, kd_tree_location, kd_tree_location_par};
 
 use ndarray::Array1;
 use ndarray::Array2;

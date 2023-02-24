@@ -8,7 +8,7 @@ use super::SingleIndexPointDistance;
 
 /// Brute force the nearest neighbor problem with serial iteration
 ///
-/// ## Parameters 
+/// ## Parameters
 ///
 /// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
 /// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
@@ -43,7 +43,7 @@ where
 
 /// Brute force the nearest neighbor problem with parallel iteration
 ///
-/// ## Parameters 
+/// ## Parameters
 ///
 /// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
 /// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
@@ -134,23 +134,23 @@ fn minimize_float(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ndarray_rand::rand_distr::Uniform;
-    use ndarray_rand::RandomExt;
-    use ndarray::Array2;
     use crate::LocationAndDistance;
     use crate::SinglePointDistance;
+    use ndarray::Array2;
+    use ndarray_rand::rand_distr::Uniform;
+    use ndarray_rand::RandomExt;
 
     #[test]
     fn minimize_left() {
         let left = SingleIndexPointDistance {
             index: 0,
             distance: 0.,
-            point: [0., 0.]
+            point: [0., 0.],
         };
         let right = SingleIndexPointDistance {
             index: 1,
             distance: 1.,
-            point: [1., 1.]
+            point: [1., 1.],
         };
 
         let out = minimize_float(left, right);
@@ -163,12 +163,12 @@ mod tests {
         let left = SingleIndexPointDistance {
             index: 0,
             distance: 1.,
-            point: [0., 0.]
+            point: [0., 0.],
         };
         let right = SingleIndexPointDistance {
             index: 1,
             distance: 0.,
-            point: [1., 1.]
+            point: [1., 1.],
         };
 
         let out = minimize_float(left, right);
@@ -181,12 +181,12 @@ mod tests {
         let left = SingleIndexPointDistance {
             index: 0,
             distance: 0.,
-            point: [0., 0.]
+            point: [0., 0.],
         };
         let right = SingleIndexPointDistance {
             index: 1,
             distance: 0.,
-            point: [1., 1.]
+            point: [1., 1.],
         };
 
         let out = minimize_float(left, right);
@@ -199,12 +199,12 @@ mod tests {
         let left = SingleIndexPointDistance {
             index: 0,
             distance: f64::NAN,
-            point: [0., 0.]
+            point: [0., 0.],
         };
         let right = SingleIndexPointDistance {
             index: 1,
             distance: 0.,
-            point: [1., 1.]
+            point: [1., 1.],
         };
 
         let out = minimize_float(left, right);
@@ -217,12 +217,12 @@ mod tests {
         let left = SingleIndexPointDistance {
             index: 0,
             distance: 20.,
-            point: [0., 0.]
+            point: [0., 0.],
         };
         let right = SingleIndexPointDistance {
             index: 1,
             distance: f64::NAN,
-            point: [1., 1.]
+            point: [1., 1.],
         };
 
         let out = minimize_float(left, right);
@@ -238,7 +238,6 @@ mod tests {
 
         let out = min_distance_to_point(line_points.view(), point);
 
-
         assert_eq!(out.point, [1.0, 0.0]);
         assert_eq!(out.index, 1);
     }
@@ -248,8 +247,12 @@ mod tests {
         let lines = Array2::random((10000, 2), Uniform::new(0.0, 10.0));
         let points = Array2::random((3000, 2), Uniform::new(0.0, 10.0));
 
-        let out_brute = brute_force::<SinglePointDistance, LocationAndDistance>(lines.view(), points.view());
-        let out_par = brute_force_par::<SinglePointDistance, LocationAndDistance>(lines.view(), points.view());
+        let out_brute =
+            brute_force::<SinglePointDistance, LocationAndDistance>(lines.view(), points.view());
+        let out_par = brute_force_par::<SinglePointDistance, LocationAndDistance>(
+            lines.view(),
+            points.view(),
+        );
 
         assert_eq!(out_brute, out_par);
     }

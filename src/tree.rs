@@ -1,5 +1,5 @@
-use kd_tree::KdTree;
 use kd_tree::KdIndexTree;
+use kd_tree::KdTree;
 
 use ndarray::ArrayView2;
 use ndarray::Axis;
@@ -7,15 +7,15 @@ use ndarray::Axis;
 use rayon::prelude::*;
 
 use super::FromShapeIter;
-use super::LocationAndDistance;
 use super::IndexAndDistance;
+use super::LocationAndDistance;
 use super::SingleIndexDistance;
 use super::SinglePointDistance;
 use super::SinglePointDistanceRef;
 
 /// KD-Tree solution to the nearest neighbor problem with serial iteration
 ///
-/// ## Parameters 
+/// ## Parameters
 ///
 /// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
 /// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
@@ -36,16 +36,18 @@ pub fn kd_tree_location(
 
         let item = kdtree.nearest(&[point_x, point_y]).unwrap();
 
-        SinglePointDistanceRef { point: item.item, distance: item.squared_distance }
+        SinglePointDistanceRef {
+            point: item.item,
+            distance: item.squared_distance,
+        }
     });
-
 
     LocationAndDistance::from_shape_iter(point_iter, points_to_match.dim())
 }
 
 /// KD-Tree solution to the nearest neighbor problem with serial iteration
 ///
-/// ## Parameters 
+/// ## Parameters
 ///
 /// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
 /// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
@@ -66,16 +68,18 @@ pub fn kd_tree_index(
 
         let item = kdtree.nearest(&[point_x, point_y]).unwrap();
 
-        SingleIndexDistance { index: *item.item, distance: item.squared_distance }
+        SingleIndexDistance {
+            index: *item.item,
+            distance: item.squared_distance,
+        }
     });
-
 
     IndexAndDistance::from_shape_iter(point_iter, points_to_match.dim())
 }
 
 /// KD-Tree solution to the nearest neighbor problem with parallel iteration
 ///
-/// ## Parameters 
+/// ## Parameters
 ///
 /// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
 /// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
@@ -99,7 +103,10 @@ pub fn kd_tree_location_par(
 
             let item = kdtree.nearest(&[point_x, point_y]).unwrap();
 
-            SinglePointDistance{ point: *item.item, distance: item.squared_distance }
+            SinglePointDistance {
+                point: *item.item,
+                distance: item.squared_distance,
+            }
         })
         // this allocation is not ideal here, but it seems to be unavoidable
         .collect();
@@ -109,7 +116,7 @@ pub fn kd_tree_location_par(
 
 /// KD-Tree solution to the nearest neighbor problem with parallel iteration
 ///
-/// ## Parameters 
+/// ## Parameters
 ///
 /// `line_points` is the 2D array of datapoints that are candidates for the 2D array of points in
 /// `points_to_match`. Essentially, every row of `points_to_match` contains two columns (x,y
@@ -133,7 +140,10 @@ pub fn kd_tree_index_par(
 
             let item = kdtree.nearest(&[point_x, point_y]).unwrap();
 
-            SingleIndexDistance { index: *item.item, distance: item.squared_distance }
+            SingleIndexDistance {
+                index: *item.item,
+                distance: item.squared_distance,
+            }
         })
         // this allocation is not ideal here, but it seems to be unavoidable
         .collect();
@@ -164,9 +174,9 @@ fn assemble_location_tree(line_points: Vec<[f64; 2]>) -> KdTree<[f64; 2]> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use ndarray::Array2;
     use ndarray_rand::rand_distr::Uniform;
     use ndarray_rand::RandomExt;
-    use ndarray::Array2;
 
     #[test]
     fn parallel_serial_same() {
