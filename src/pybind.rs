@@ -1,4 +1,5 @@
 use numpy::PyArray2;
+use numpy::PyArray1;
 use numpy::PyReadonlyArray2;
 use pyo3::prelude::*;
 
@@ -46,14 +47,14 @@ fn brute_force<'a>(
     line_points: PyReadonlyArray2<'_, f64>,
     point_cloud: PyReadonlyArray2<'_, f64>,
     parallel: bool,
-) -> &'a PyArray2<f64> {
+) -> (&'a PyArray2<f64>, &'a PyArray1<f64>) {
     let arr = if parallel {
         super::brute_force_par(line_points.as_array(), point_cloud.as_array())
     } else {
         super::brute_force(line_points.as_array(), point_cloud.as_array())
     };
 
-    PyArray2::from_owned_array(py, arr)
+    (PyArray2::from_owned_array(py, arr), 1)
 }
 
 #[pyfunction]

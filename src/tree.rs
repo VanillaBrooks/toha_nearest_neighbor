@@ -6,10 +6,15 @@ use ndarray::Axis;
 
 use rayon::prelude::*;
 
+use super::FromShapeIter;
+use super::LocationAndDistance;
+use super::SinglePointDistance;
+use super::SinglePointDistanceRef;
+
 pub fn kd_tree(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
-) -> Array2<f64> {
+) -> LocationAndDistance {
     let kdtree = assemble_tree(line_points);
 
     let point_iter = points_to_match.axis_iter(Axis(0)).map(|point| {
@@ -18,19 +23,20 @@ pub fn kd_tree(
 
         let item = kdtree.nearest(&[point_x, point_y]).unwrap();
 
-        item.item
+        SinglePointDistanceRef { point: item.item, distance: item.squared_distance }
     });
 
-    super::arr2_from_iter(point_iter, points_to_match.dim())
+
+    LocationAndDistance::from_shape_iter(point_iter, points_to_match.dim())
 }
 
 pub fn kd_tree_par(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
-) -> Array2<f64> {
+) -> LocationAndDistance {
     let kdtree = assemble_tree(line_points);
 
-    let points_vec: Vec<[f64; 2]> = points_to_match
+    let points_vec: Vec<_> = points_to_match
         .axis_iter(Axis(0))
         .into_par_iter()
         .map(|point| {
@@ -39,12 +45,12 @@ pub fn kd_tree_par(
 
             let item = kdtree.nearest(&[point_x, point_y]).unwrap();
 
-            item.item.clone()
+            SinglePointDistance{ point: *item.item, distance: item.squared_distance }
         })
         // this allocation is not ideal here, but it seems to be unavoidable
         .collect();
 
-    super::arr2_from_iter_owned(points_vec.into_iter(), points_to_match.dim())
+    LocationAndDistance::from_shape_iter(points_vec, points_to_match.dim())
 }
 
 fn assemble_tree(line_points: ArrayView2<'_, f64>) -> KdTree<[f64; 2]> {
@@ -72,9 +78,20 @@ mod test {
         let lines = ndarray::Array2::random((10000, 2), Uniform::new(0.0, 10.0));
         let points = ndarray::Array2::random((3000, 2), Uniform::new(0.0, 10.0));
 
-        let out_brute = kd_tree(lines.view(), points.view());
-        let out_par = kd_tree_par(lines.view(), points.view());
+        let kd_brute = kd_tree(lines.view(), points.view());
+        let kd_par = kd_tree_par(lines.view(), points.view());
 
-        assert_eq!(out_brute, out_par);
+        assert_eq!(kd_brute, kd_par);
+    }
+
+    #[test]
+    fn kdtree_brute_force_same() {
+        let lines = ndarray::Array2::random((100, 2), Uniform::new(0.0, 10.0));
+        let points = ndarray::Array2::random((100, 2), Uniform::new(0.0, 10.0));
+
+        let out_kd = kd_tree(lines.view(), points.view());
+        let out_brute = crate::brute_force::<SinglePointDistance, _>(lines.view(), points.view());
+
+        assert_eq!(out_kd, out_brute);
     }
 }
