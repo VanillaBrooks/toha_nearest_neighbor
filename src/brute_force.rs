@@ -4,10 +4,40 @@ use ndarray::Axis;
 use rayon::prelude::*;
 
 use super::FromShapeIter;
-use super::SingleIndexPointDistance;
 use super::SingleIndexDistance;
+use super::SinglePointDistance;
+use super::LocationAndDistance;
+use super::IndexAndDistance;
 
-pub trait Distance {
+pub fn brute_force_location<'a, 'b>(
+    line_points: ArrayView2<'a, f64>,
+    points_to_match: ArrayView2<'b, f64>,
+) -> LocationAndDistance {
+    brute_force::<SinglePointDistance, LocationAndDistance>(line_points, points_to_match)
+}
+
+pub fn brute_force_index<'a, 'b>(
+    line_points: ArrayView2<'a, f64>,
+    points_to_match: ArrayView2<'b, f64>,
+) -> IndexAndDistance{
+    brute_force::<SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
+}
+
+pub fn brute_force_location_par<'a, 'b>(
+    line_points: ArrayView2<'a, f64>,
+    points_to_match: ArrayView2<'b, f64>,
+) -> LocationAndDistance {
+    brute_force_par::<SinglePointDistance, LocationAndDistance>(line_points, points_to_match)
+}
+
+pub fn brute_force_index_par<'a, 'b>(
+    line_points: ArrayView2<'a, f64>,
+    points_to_match: ArrayView2<'b, f64>,
+) -> IndexAndDistance{
+    brute_force_par::<SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
+}
+
+trait Distance {
     fn distance(&self) -> f64;
 }
 
@@ -18,12 +48,6 @@ impl Distance for super::SinglePointDistance {
 }
 
 impl Distance for super::SingleIndexDistance {
-    fn distance(&self) -> f64 {
-        self.distance
-    }
-}
-    
-impl Distance for super::SingleIndexPointDistance {
     fn distance(&self) -> f64 {
         self.distance
     }
@@ -43,12 +67,12 @@ impl Distance for super::SingleIndexPointDistance {
 ///
 /// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
 /// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
-pub fn brute_force<'a, 'b, SINGLE, ALL>(
+fn brute_force<'a, 'b, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
 ) -> ALL
 where
-    SINGLE: From<(SingleIndexDistance, ArrayView2<'a, f64>)> + Distance,
+    SINGLE: From<(SingleIndexDistance, ArrayView2<'a, f64>)>,
     ALL: FromShapeIter<SINGLE>,
 {
     let points_iter = points_to_match.axis_iter(Axis(0)).map(|point| {
@@ -77,7 +101,7 @@ where
 ///
 /// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
 /// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
-pub fn brute_force_par<'a, 'b, SINGLE, ALL>(
+fn brute_force_par<'a, 'b, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
 ) -> ALL

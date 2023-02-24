@@ -2,7 +2,7 @@ mod brute_force;
 mod pybind;
 mod tree;
 
-pub use brute_force::{brute_force, brute_force_par};
+pub use brute_force::{brute_force_location, brute_force_index, brute_force_index_par, brute_force_location_par};
 pub use tree::{kd_tree_index, kd_tree_index_par, kd_tree_location, kd_tree_location_par};
 
 use ndarray::Array1;
@@ -91,7 +91,7 @@ struct SinglePointDistanceRef<'a> {
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct SinglePointDistance {
+struct SinglePointDistance {
     point: [f64; 2],
     distance: f64,
 }
@@ -113,14 +113,14 @@ impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SinglePointDi
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct SingleIndexPointDistance {
+struct SingleIndexPointDistance {
     point: [f64; 2],
     index: usize,
     distance: f64,
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct SingleIndexDistance {
+struct SingleIndexDistance {
     index: usize,
     distance: f64,
 }
@@ -128,27 +128,5 @@ pub struct SingleIndexDistance {
 impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SingleIndexDistance {
     fn from(x: (SingleIndexDistance, ndarray::ArrayView2<'_, f64>)) -> Self {
         x.0
-    }
-}
-
-impl From<SingleIndexPointDistance> for SingleIndexDistance {
-    fn from(x: SingleIndexPointDistance) -> Self {
-        let SingleIndexPointDistance {
-            index,
-            distance,
-            point: _,
-        } = x;
-        Self { index, distance }
-    }
-}
-
-impl From<SingleIndexPointDistance> for SinglePointDistance {
-    fn from(x: SingleIndexPointDistance) -> Self {
-        let SingleIndexPointDistance {
-            index: _,
-            distance,
-            point,
-        } = x;
-        Self { point, distance }
     }
 }
