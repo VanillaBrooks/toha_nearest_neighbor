@@ -53,12 +53,12 @@ def bench_scikit(lines: np.ndarray, cloud: np.ndarray, algorithm: str):
     return
 
 def bench_rust_brute(lines: np.ndarray, cloud: np.ndarray, parallel: bool):
-    toha.brute_force(lines, cloud, parallel)
+    toha.brute_force_index(lines, cloud, parallel)
 
     return
 
 def bench_rust_kd(lines: np.ndarray, cloud: np.ndarray, parallel: bool):
-    toha.kd_tree(lines, cloud, parallel)
+    toha.kd_tree_index(lines, cloud, parallel)
 
     return
 
@@ -105,7 +105,7 @@ def bench_all():
         xs.append(line_size * cloud_size)
 
         # python brute
-        if line_size <= 10_000:
+        if line_size <= 5_000:
             python_xs.append(line_size * cloud_size)
 
             l = lambda : bench_python_brute(lines, clouds)
