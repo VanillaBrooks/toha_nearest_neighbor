@@ -5,12 +5,34 @@ import numpy as np
 from typing import Tuple
 import time
 from statistics import mean
+import math
 
 def create_data(line_ct: int, point_ct: int) -> Tuple[np.ndarray, np.ndarray]:
     line_pts = np.random.rand(line_ct, 2)
     cloud_pts = np.random.rand(point_ct, 2)
 
     return line_pts, cloud_pts 
+
+def bench_python_brute(lines: np.ndarray, cloud: np.ndarray):
+    out_array = np.zeros(cloud.shape[0])
+
+    for cloud_row in range(cloud.shape[0]):
+        cloud_row_val = cloud[cloud_row, :]
+
+        minimum = math.inf
+        minimum_idx = 0;
+
+        for line_row in range(lines.shape[0]):
+            line_row_val = lines[line_row, :]
+            candidate_min = (line_row_val[0] - cloud_row_val[0])**2 + (line_row_val[1] - cloud_row_val[1])**2
+
+            if candidate_min < minimum:
+                minimum_idx = line_row
+                minimum = candidate_min
+
+        out_array[cloud_row] = minimum_idx
+
+    return out_array
 
 def bench_numpy_brute(lines: np.ndarray, cloud: np.ndarray):
     out_array = np.zeros(cloud.shape[0])
@@ -65,6 +87,7 @@ def bench_all():
     #line_sizes = [100, 500, 1000]
     cloud_sizes = line_sizes.copy()
 
+    python_brute= []
     numpy_brute= []
     scikit_brute = []
     scikit_kd = []
@@ -74,11 +97,19 @@ def bench_all():
     rust_kd_par = []
 
     xs = []
+    python_xs = []
 
     for (line_size, cloud_size) in zip(line_sizes, cloud_sizes):
         lines, clouds = create_data(line_size, cloud_size)
 
         xs.append(line_size * cloud_size)
+
+        # python brute
+        if line_size <= 10_000:
+            python_xs.append(line_size * cloud_size)
+
+            l = lambda : bench_python_brute(lines, clouds)
+            bench_helper(l, python_brute)
 
         # numpy brute
         l = lambda : bench_numpy_brute(lines, clouds)
@@ -110,8 +141,6 @@ def bench_all():
 
         print(f"finished size {line_size} | {cloud_size}")
 
-
-
     fig = plt.figure(figsize = (8, 6), dpi=300)
     ax = fig.add_subplot(1, 1, 1)
     ax.set_xlabel("total point size (num neighbors * num point cloud)")
@@ -120,6 +149,7 @@ def bench_all():
     ax.set_yscale('log')
     ax.set_xscale('log')
 
+    ax.plot(python_xs, python_brute, label = "python brute", color = "black", linestyle = "solid")
     ax.plot(xs, numpy_brute, label = "numpy brute", color = "red", linestyle = "dashdot")
     ax.plot(xs, scikit_brute, label = "scikit brute", color = "red")
     ax.plot(xs, scikit_kd, label = "scikit kd", color = "blue")
