@@ -6,15 +6,16 @@ use pyo3::prelude::*;
 #[pyfunction]
 #[pyo3(signature = (line_points, point_cloud, parallel = false))]
 /// For every point in ``point_cloud``, find it's nearest neighbor in ``line_points`` using a
-/// brute-force algorithm
+/// brute-force algorithm. Returns a tuple of the closest ``line_points`` locations and
+/// their associated distances.
 ///
 /// :param np.ndarray line_points: a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape ``(NUM_LINE_POINTS, 2)``
 /// :param np.ndarray point_cloud: a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape ``(NUM_POINT_CLOUD_POINTS, 2)``
 /// :param bool parallel: enable parallel processing for the dataset. If you have more than 2,000 line points and 2,000 point cloud points this may be useful.
 ///
 /// this function returns  a ``(NUM_POINT_CLOUD_POINTS, 2)`` shaped array of the points where
-/// each ``i``th row of the returned array is a row of ``line_points`` that is closest to the
-/// ``i``th row of ``point_cloud``
+/// each ``i`` th row of the returned array is a row of ``line_points`` that is closest to the
+/// ``i`` th row of ``point_cloud``
 ///
 /// Example:
 ///
@@ -80,10 +81,6 @@ fn brute_force_location<'a>(
 /// :param np.ndarray point_cloud: a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape ``(NUM_POINT_CLOUD_POINTS, 2)``
 /// :param bool parallel: enable parallel processing for the dataset. If you have more than 2,000 line points and 2,000 point cloud points this may be useful.
 ///
-/// this function returns  a ``(NUM_POINT_CLOUD_POINTS, 2)`` shaped array of the points where
-/// each ``i``th row of the returned array is a row of ``line_points`` that is closest to the
-/// ``i``th row of ``point_cloud``
-///
 /// Example:
 ///
 /// .. code-block::
@@ -139,15 +136,16 @@ fn brute_force_index<'a>(
 #[pyfunction]
 #[pyo3(signature = (line_points, point_cloud, parallel = false))]
 /// For every point in ``point_cloud``, find it's nearest neighbor in ``line_points`` using a
-/// kd-tree algorithm
+/// brute-force algorithm. Returns a tuple of the closest ``line_points`` locations and
+/// their associated distances.
 ///
 /// :param np.ndarray line_points: a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape ``(NUM_LINE_POINTS, 2)``
 /// :param np.ndarray point_cloud: a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape ``(NUM_POINT_CLOUD_POINTS, 2)``
 /// :param bool parallel: enable parallel processing for the dataset. If you have more than 2,000 line points and 2,000 point cloud points this may be useful.
 ///
 /// this function returns  a ``(NUM_POINT_CLOUD_POINTS, 2)`` shaped array of the points where
-/// each ``i``th row of the returned array is a row of ``line_points`` that is closest to the
-/// ``i``th row of ``point_cloud``
+/// each ``i`` th row of the returned array is a row of ``line_points`` that is closest to the
+/// ``i`` th row of ``point_cloud``
 ///
 /// Example:
 ///
@@ -200,15 +198,16 @@ fn kd_tree_location<'a>(
 #[pyfunction]
 #[pyo3(signature = (line_points, point_cloud, parallel = false))]
 /// For every point in ``point_cloud``, find it's nearest neighbor in ``line_points`` using a
-/// kd-tree algorithm
+/// kd-tree algorithm. Returns a tuple of indicies of the closest ``line_points`` rows and
+/// their associated distances.
 ///
 /// :param np.ndarray line_points: a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape ``(NUM_LINE_POINTS, 2)``
 /// :param np.ndarray point_cloud: a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape ``(NUM_POINT_CLOUD_POINTS, 2)``
 /// :param bool parallel: enable parallel processing for the dataset. If you have more than 2,000 line points and 2,000 point cloud points this may be useful.
 ///
 /// this function returns  a ``(NUM_POINT_CLOUD_POINTS, 2)`` shaped array of the points where
-/// each ``i``th row of the returned array is a row of ``line_points`` that is closest to the
-/// ``i``th row of ``point_cloud``
+/// each ``i`` th row of the returned array is a row of ``line_points`` that is closest to the
+/// ``i`` th row of ``point_cloud``
 ///
 /// Example:
 ///
