@@ -21,6 +21,10 @@ Install with ``pip``:
 Api Reference
 ==================
 
-.. autofunction:: toha_nearest_neighbor.brute_force(line_points: np.ndarray, point_cloud: np.ndarray, parallel=False) -> np.ndarray
+.. autofunction:: toha_nearest_neighbor.brute_force_location(line_points: np.ndarray, point_cloud: np.ndarray, parallel=False) -> np.ndarray
 
-.. autofunction:: toha_nearest_neighbor.kd_tree(line_points: np.ndarray, point_cloud: np.ndarray, parallel=False) -> np.ndarray
+.. autofunction:: toha_nearest_neighbor.brute_force_index(line_points: np.ndarray, point_cloud: np.ndarray, parallel=False) -> np.ndarray
+
+.. autofunction:: toha_nearest_neighbor.kd_tree_location(line_points: np.ndarray, point_cloud: np.ndarray, parallel=False) -> np.ndarray
+
+.. autofunction:: toha_nearest_neighbor.kd_tree_index(line_points: np.ndarray, point_cloud: np.ndarray, parallel=False) -> np.ndarray
