@@ -141,11 +141,14 @@ impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SingleIndexDi
 }
 
 #[inline(always)]
-fn copy_to_array<const DIM: usize>(arr: ndarray::ArrayView1<f64>) -> [f64; DIM] {
+fn copy_to_array<const DIM: usize>(arr: ndarray::ArrayView1<'_, f64>) -> [f64; DIM] {
+    #[cfg(debug_assertions)]
+    assert_eq!(arr.is_standard_layout(), true);
+
     let mut array_point = [0.; DIM];
 
-    for col in 0..DIM {
-        array_point[col] = arr[[col]];
+    for i in 0..DIM {
+        array_point[i] = arr[i]
     }
 
     array_point

@@ -115,6 +115,7 @@ where
         .into_iter()
         .into_par_iter()
         .map(|point| {
+            assert!(point.len() == DIM);
             let array_point = super::copy_to_array::<DIM>(point);
 
             let min_distance = min_distance_to_point(line_points, array_point);
@@ -133,6 +134,8 @@ fn min_distance_to_point<const DIM: usize>(
         .axis_iter(Axis(0))
         .enumerate()
         .map(|(index, point_row)| {
+            assert!(point_row.len() == DIM);
+
             let line_point = super::copy_to_array::<DIM>(point_row);
             let mut distance = 0.0;
 
