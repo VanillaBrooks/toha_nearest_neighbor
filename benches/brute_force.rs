@@ -26,7 +26,7 @@ fn serial(c: &mut Criterion) {
         );
 
         c.bench_function(&name, |b| {
-            b.iter(|| black_box(toha::brute_force_location(lines.view(), points.view())))
+            b.iter(|| black_box(toha::brute_force_location::<2>(lines.view(), points.view())))
         });
 
         let name = format!(
@@ -34,7 +34,7 @@ fn serial(c: &mut Criterion) {
         );
 
         c.bench_function(&name, |b| {
-            b.iter(|| black_box(toha::brute_force_index(lines.view(), points.view())))
+            b.iter(|| black_box(toha::brute_force_index::<2>(lines.view(), points.view())))
         });
     }
 }
@@ -48,7 +48,10 @@ fn parallel(c: &mut Criterion) {
 
         c.bench_function(&name, |b| {
             b.iter(|| {
-                black_box(toha::brute_force_location_par(lines.view(), points.view()));
+                black_box(toha::brute_force_location_par::<2>(
+                    lines.view(),
+                    points.view(),
+                ));
             })
         });
 
@@ -57,7 +60,12 @@ fn parallel(c: &mut Criterion) {
         );
 
         c.bench_function(&name, |b| {
-            b.iter(|| black_box(toha::brute_force_index_par(lines.view(), points.view())))
+            b.iter(|| {
+                black_box(toha::brute_force_index_par::<2>(
+                    lines.view(),
+                    points.view(),
+                ))
+            })
         });
     }
 }

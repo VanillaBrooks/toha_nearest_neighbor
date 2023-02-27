@@ -79,11 +79,7 @@ where
     ALL: FromShapeIter<DIM, SINGLE>,
 {
     let points_iter = points_to_match.axis_iter(Axis(0)).map(|point| {
-        let mut array_point = [0.; DIM];
-
-        for col in 0..DIM {
-            array_point[col] = point[[col]];
-        }
+        let array_point = super::copy_to_array::<DIM>(point);
 
         let min_distance = min_distance_to_point(line_points, array_point);
         SINGLE::from((min_distance, line_points))
@@ -119,10 +115,9 @@ where
         .into_iter()
         .into_par_iter()
         .map(|point| {
-            let point_x = point[[0]];
-            let point_y = point[[1]];
+            let array_point = super::copy_to_array::<DIM>(point);
 
-            let min_distance = min_distance_to_point(line_points, [point_x, point_y]);
+            let min_distance = min_distance_to_point(line_points, array_point);
             SINGLE::from((min_distance, line_points))
         })
         .collect();
@@ -138,12 +133,12 @@ fn min_distance_to_point<const DIM: usize>(
         .axis_iter(Axis(0))
         .enumerate()
         .map(|(index, point_row)| {
-            let line_x = point_row[[0]];
-            let line_y = point_row[[1]];
+            let line_point = super::copy_to_array::<DIM>(point_row);
+            let mut distance = 0.0;
 
-            let line_point = [line_x, line_y];
-
-            let distance = (point[0] - line_point[0]).powi(2) + (point[1] - line_point[1]).powi(2);
+            for i in 0..DIM {
+                distance += (point[i] - line_point[i]).powi(2);
+            }
 
             SingleIndexDistance { distance, index }
         })

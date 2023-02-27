@@ -26,10 +26,11 @@ use super::SinglePointDistanceRef;
 pub fn kd_tree_location<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
-) -> LocationAndDistance 
-where [f64; DIM] : kd_tree::KdPoint,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: Into<f64>
+) -> LocationAndDistance
+where
+    [f64; DIM]: kd_tree::KdPoint,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: Into<f64>,
 {
     let line_points = to_kdtree_vector::<DIM>(line_points);
     let kdtree = assemble_location_tree::<DIM>(line_points);
@@ -61,10 +62,11 @@ where [f64; DIM] : kd_tree::KdPoint,
 pub fn kd_tree_index<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
-) -> IndexAndDistance 
-    where [f64; DIM] : kd_tree::KdPoint,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: Into<f64>,
+) -> IndexAndDistance
+where
+    [f64; DIM]: kd_tree::KdPoint,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: Into<f64>,
 {
     let line_points = to_kdtree_vector::<DIM>(line_points);
     let kdtree = assemble_index_tree::<DIM>(&line_points);
@@ -97,11 +99,12 @@ pub fn kd_tree_index<const DIM: usize>(
 pub fn kd_tree_location_par<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
-) -> LocationAndDistance 
-where [f64; DIM] : kd_tree::KdPoint,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: Into<f64>,
-      <[f64; DIM] as kd_tree::KdPoint>::Dim: Send + Sync
+) -> LocationAndDistance
+where
+    [f64; DIM]: kd_tree::KdPoint,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: Into<f64>,
+    <[f64; DIM] as kd_tree::KdPoint>::Dim: Send + Sync,
 {
     let line_points = to_kdtree_vector::<DIM>(line_points);
     let kdtree = assemble_location_tree::<DIM>(line_points);
@@ -138,11 +141,12 @@ where [f64; DIM] : kd_tree::KdPoint,
 pub fn kd_tree_index_par<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
-) -> IndexAndDistance 
-where [f64; DIM] : kd_tree::KdPoint,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: Into<f64>,
-      <[f64; DIM] as kd_tree::KdPoint>::Dim: Send + Sync
+) -> IndexAndDistance
+where
+    [f64; DIM]: kd_tree::KdPoint,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: Into<f64>,
+    <[f64; DIM] as kd_tree::KdPoint>::Dim: Send + Sync,
 {
     let line_points = to_kdtree_vector::<DIM>(line_points);
     let kdtree = assemble_index_tree::<DIM>(&line_points);
@@ -179,15 +183,17 @@ fn to_kdtree_vector<const DIM: usize>(line_points: ArrayView2<'_, f64>) -> Vec<[
 }
 
 fn assemble_index_tree<const DIM: usize>(line_points: &[[f64; DIM]]) -> KdIndexTree<[f64; DIM]>
-where [f64; DIM] : kd_tree::KdPoint,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float
+where
+    [f64; DIM]: kd_tree::KdPoint,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
 {
     KdIndexTree::build_by_ordered_float(line_points)
 }
 
-fn assemble_location_tree<const DIM: usize>(line_points: Vec<[f64; DIM]>) -> KdTree<[f64; DIM]> 
-where [f64; DIM] : kd_tree::KdPoint,
-      <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float
+fn assemble_location_tree<const DIM: usize>(line_points: Vec<[f64; DIM]>) -> KdTree<[f64; DIM]>
+where
+    [f64; DIM]: kd_tree::KdPoint,
+    <[f64; DIM] as kd_tree::KdPoint>::Scalar: num_traits::Float,
 {
     KdTree::build_by_ordered_float(line_points)
 }

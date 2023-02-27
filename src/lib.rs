@@ -1,5 +1,5 @@
 mod brute_force;
-//mod pybind;
+mod pybind;
 mod tree;
 
 pub use brute_force::{
@@ -22,7 +22,7 @@ pub struct IndexAndDistance {
     pub distance: Array1<f64>,
 }
 
-impl <const DIM: usize> FromShapeIter<DIM, SingleIndexDistance> for IndexAndDistance {
+impl<const DIM: usize> FromShapeIter<DIM, SingleIndexDistance> for IndexAndDistance {
     fn from_shape_iter<T>(iter: T, cloud_shape: (usize, usize)) -> Self
     where
         T: IntoIterator<Item = SingleIndexDistance>,

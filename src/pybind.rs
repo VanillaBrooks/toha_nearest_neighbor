@@ -54,15 +54,9 @@ fn brute_force_location<'a>(
     parallel: bool,
 ) -> (&'a PyArray2<f64>, &'a PyArray1<f64>) {
     let location_and_distance = if parallel {
-        super::brute_force_location_par(
-            line_points.as_array(),
-            point_cloud.as_array(),
-        )
+        super::brute_force_location_par::<2>(line_points.as_array(), point_cloud.as_array())
     } else {
-        super::brute_force_location(
-            line_points.as_array(),
-            point_cloud.as_array(),
-        )
+        super::brute_force_location::<2>(line_points.as_array(), point_cloud.as_array())
     };
 
     let loc = PyArray2::from_owned_array(py, location_and_distance.location);
@@ -116,15 +110,9 @@ fn brute_force_index<'a>(
     parallel: bool,
 ) -> (&'a PyArray1<usize>, &'a PyArray1<f64>) {
     let index_and_distance = if parallel {
-        super::brute_force_index_par(
-            line_points.as_array(),
-            point_cloud.as_array(),
-        )
+        super::brute_force_index_par::<2>(line_points.as_array(), point_cloud.as_array())
     } else {
-        super::brute_force_index(
-            line_points.as_array(),
-            point_cloud.as_array(),
-        )
+        super::brute_force_index::<2>(line_points.as_array(), point_cloud.as_array())
     };
 
     let index = PyArray1::from_owned_array(py, index_and_distance.index);
@@ -184,9 +172,9 @@ fn kd_tree_location<'a>(
     parallel: bool,
 ) -> (&'a PyArray2<f64>, &'a PyArray1<f64>) {
     let location_and_distance = if parallel {
-        super::kd_tree_location_par(line_points.as_array(), point_cloud.as_array())
+        super::kd_tree_location_par::<2>(line_points.as_array(), point_cloud.as_array())
     } else {
-        super::kd_tree_location(line_points.as_array(), point_cloud.as_array())
+        super::kd_tree_location::<2>(line_points.as_array(), point_cloud.as_array())
     };
 
     let loc = PyArray2::from_owned_array(py, location_and_distance.location);
@@ -244,9 +232,9 @@ fn kd_tree_index<'a>(
     parallel: bool,
 ) -> (&'a PyArray1<usize>, &'a PyArray1<f64>) {
     let index_and_distance = if parallel {
-        super::kd_tree_index_par(line_points.as_array(), point_cloud.as_array())
+        super::kd_tree_index_par::<2>(line_points.as_array(), point_cloud.as_array())
     } else {
-        super::kd_tree_index(line_points.as_array(), point_cloud.as_array())
+        super::kd_tree_index::<2>(line_points.as_array(), point_cloud.as_array())
     };
 
     let index = PyArray1::from_owned_array(py, index_and_distance.index);

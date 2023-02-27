@@ -30,14 +30,14 @@ fn serial(c: &mut Criterion) {
         );
 
         c.bench_function(&name, |b| {
-            b.iter(|| black_box(kd_tree_location(lines.view(), points.view())))
+            b.iter(|| black_box(kd_tree_location::<2>(lines.view(), points.view())))
         });
 
         let name =
             format!("kd tree index| serial | {line_ct}k line points |  {cloud_ct}k cloud points");
 
         c.bench_function(&name, |b| {
-            b.iter(|| black_box(kd_tree_index(lines.view(), points.view())))
+            b.iter(|| black_box(kd_tree_index::<2>(lines.view(), points.view())))
         });
     }
 }
@@ -51,7 +51,7 @@ fn parallel(c: &mut Criterion) {
 
         c.bench_function(&name, |b| {
             b.iter(|| {
-                black_box(kd_tree_location_par(lines.view(), points.view()));
+                black_box(kd_tree_location_par::<2>(lines.view(), points.view()));
             })
         });
 
@@ -61,7 +61,7 @@ fn parallel(c: &mut Criterion) {
 
         c.bench_function(&name, |b| {
             b.iter(|| {
-                black_box(kd_tree_index_par(lines.view(), points.view()));
+                black_box(kd_tree_index_par::<2>(lines.view(), points.view()));
             })
         });
     }
