@@ -26,12 +26,7 @@ fn serial(c: &mut Criterion) {
         );
 
         c.bench_function(&name, |b| {
-            b.iter(|| {
-                black_box(toha::brute_force_location(
-                    lines.view(),
-                    points.view(),
-                ))
-            })
+            b.iter(|| black_box(toha::brute_force_location(lines.view(), points.view())))
         });
 
         let name = format!(
@@ -39,12 +34,7 @@ fn serial(c: &mut Criterion) {
         );
 
         c.bench_function(&name, |b| {
-            b.iter(|| {
-                black_box(toha::brute_force_index(
-                    lines.view(),
-                    points.view(),
-                ))
-            })
+            b.iter(|| black_box(toha::brute_force_index(lines.view(), points.view())))
         });
     }
 }
@@ -52,15 +42,13 @@ fn serial(c: &mut Criterion) {
 fn parallel(c: &mut Criterion) {
     for (line_ct, cloud_ct) in LINE_POINTS.into_iter().zip(CLOUD_POINTS) {
         let (lines, points) = create_data(line_ct * 1000, cloud_ct * 1000);
-        let name =
-            format!("brute force location | parallel | {line_ct}k line points |  {cloud_ct}k cloud points");
+        let name = format!(
+            "brute force location | parallel | {line_ct}k line points |  {cloud_ct}k cloud points"
+        );
 
         c.bench_function(&name, |b| {
             b.iter(|| {
-                black_box(toha::brute_force_location_par(
-                    lines.view(),
-                    points.view(),
-                ));
+                black_box(toha::brute_force_location_par(lines.view(), points.view()));
             })
         });
 
@@ -69,12 +57,7 @@ fn parallel(c: &mut Criterion) {
         );
 
         c.bench_function(&name, |b| {
-            b.iter(|| {
-                black_box(toha::brute_force_index_par(
-                    lines.view(),
-                    points.view(),
-                ))
-            })
+            b.iter(|| black_box(toha::brute_force_index_par(lines.view(), points.view())))
         });
     }
 }
