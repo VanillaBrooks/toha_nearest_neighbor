@@ -21,9 +21,7 @@ fn create_data(line_length: usize, points_length: usize) -> (Array2<f64>, Array2
 fn min_point_distance(c: &mut Criterion) {
     for (line_ct, cloud_ct) in LINE_POINTS.into_iter().zip(CLOUD_POINTS) {
         let (lines, _) = create_data(line_ct * 1000, cloud_ct * 1000);
-        let name = format!(
-            "min distance to point | {line_ct}k line points | 1 cloud point"
-        );
+        let name = format!("min distance to point | {line_ct}k line points | 1 cloud point");
 
         let point = black_box([5.0, 5.0]);
 
@@ -31,12 +29,11 @@ fn min_point_distance(c: &mut Criterion) {
             b.iter(|| {
                 black_box(toha::brute_force::min_distance_to_point::<DIM>(
                     lines.view(),
-                    point
+                    point,
                 ))
             })
         });
     }
-
 }
 
 fn serial(c: &mut Criterion) {
