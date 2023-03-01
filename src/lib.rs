@@ -1,4 +1,5 @@
-mod brute_force;
+#[doc(hidden)]
+pub mod brute_force;
 mod pybind;
 mod tree;
 
@@ -111,6 +112,8 @@ impl<const DIM: usize> From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)>
         let mut point: [f64; DIM] = [0.; DIM];
 
         for col in 0..DIM {
+            // because these indexes from the compiler's perspective can be random,
+            // its helpful to use unsafe indexing on the ndarray::Array
             point[col] = unsafe { *array.uget([point_distance.index, col]) }
         }
 
@@ -129,7 +132,8 @@ struct SingleIndexPointDistance {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-struct SingleIndexDistance {
+#[doc(hidden)]
+pub struct SingleIndexDistance {
     index: usize,
     distance: f64,
 }
@@ -140,7 +144,7 @@ impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SingleIndexDi
     }
 }
 
-#[inline(always)]
+#[inline]
 fn copy_to_array<const DIM: usize>(arr: ndarray::ArrayView1<'_, f64>) -> [f64; DIM] {
     #[cfg(debug_assertions)]
     assert_eq!(arr.is_standard_layout(), true);

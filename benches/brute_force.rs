@@ -18,6 +18,27 @@ fn create_data(line_length: usize, points_length: usize) -> (Array2<f64>, Array2
     (lines, points)
 }
 
+fn min_point_distance(c: &mut Criterion) {
+    for (line_ct, cloud_ct) in LINE_POINTS.into_iter().zip(CLOUD_POINTS) {
+        let (lines, _) = create_data(line_ct * 1000, cloud_ct * 1000);
+        let name = format!(
+            "min distance to point | {line_ct}k line points | 1 cloud point"
+        );
+
+        let point = black_box([5.0, 5.0]);
+
+        c.bench_function(&name, |b| {
+            b.iter(|| {
+                black_box(toha::brute_force::min_distance_to_point::<DIM>(
+                    lines.view(),
+                    point
+                ))
+            })
+        });
+    }
+
+}
+
 fn serial(c: &mut Criterion) {
     for (line_ct, cloud_ct) in LINE_POINTS.into_iter().zip(CLOUD_POINTS) {
         let (lines, points) = create_data(line_ct * 1000, cloud_ct * 1000);
@@ -75,5 +96,5 @@ fn parallel(c: &mut Criterion) {
     }
 }
 
-criterion_group!(benches, serial, parallel);
+criterion_group!(benches, min_point_distance, serial, parallel);
 criterion_main!(benches);

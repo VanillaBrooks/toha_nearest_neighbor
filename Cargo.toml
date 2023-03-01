@@ -32,3 +32,6 @@ harness = false
 [[bench]]
 name = "tree"
 harness = false
+
+[profile.release]
+lto = "fat"

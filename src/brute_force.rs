@@ -126,17 +126,19 @@ where
     ALL::from_shape_iter(points_vec, points_to_match.dim())
 }
 
-fn min_distance_to_point<const DIM: usize>(
+#[doc(hidden)]
+pub fn min_distance_to_point<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
     point: [f64; DIM],
 ) -> SingleIndexDistance {
+    assert!(line_points.dim().1 == DIM);
+
     line_points
         .axis_iter(Axis(0))
         .enumerate()
         .map(|(index, point_row)| {
-            assert!(point_row.len() == DIM);
-
             let line_point = super::copy_to_array::<DIM>(point_row);
+
             let mut distance = 0.0;
 
             for i in 0..DIM {
