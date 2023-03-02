@@ -174,7 +174,6 @@ fn minimize_float<T: Distance>(left: T, right: T) -> T {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::LocationAndDistance;
     use crate::SinglePointDistance;
     use ndarray::Array2;
     use ndarray_rand::rand_distr::Uniform;

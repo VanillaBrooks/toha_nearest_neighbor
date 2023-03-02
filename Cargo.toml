@@ -19,6 +19,7 @@ rayon = "1.6.1"
 pyo3 = { version = "0.18.1", features = ["extension-module"] }
 numpy = "0.18"
 num-traits = "0.2.15"
+macros = { path = "./macros" }
 
 [dependencies.kd-tree]
 git = "https://github.com/VanillaBrooks/kd-tree"

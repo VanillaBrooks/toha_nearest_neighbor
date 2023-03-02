@@ -1,3 +1,4 @@
 /target
 /Cargo.lock
+/macros/Cargo.lock
 docs/build
