@@ -4,44 +4,47 @@ use ndarray::Axis;
 use rayon::prelude::*;
 
 use super::FromShapeIter;
+use super::IndexAndDistance;
+use super::LocationAndDistance;
 use super::SingleIndexDistance;
 use super::SinglePointDistance;
-use super::LocationAndDistance;
-use super::IndexAndDistance;
 
-pub fn brute_force_location(
+pub fn brute_force_location<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
 ) -> LocationAndDistance {
-    brute_force::<SinglePointDistance, LocationAndDistance>(line_points, points_to_match)
+    brute_force::<DIM, SinglePointDistance<DIM>, LocationAndDistance>(line_points, points_to_match)
 }
 
-pub fn brute_force_index(
+pub fn brute_force_index<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
-) -> IndexAndDistance{
-    brute_force::<SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
+) -> IndexAndDistance {
+    brute_force::<DIM, SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
 }
 
-pub fn brute_force_location_par(
+pub fn brute_force_location_par<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
 ) -> LocationAndDistance {
-    brute_force_par::<SinglePointDistance, LocationAndDistance>(line_points, points_to_match)
+    brute_force_par::<DIM, SinglePointDistance<DIM>, LocationAndDistance>(
+        line_points,
+        points_to_match,
+    )
 }
 
-pub fn brute_force_index_par(
+pub fn brute_force_index_par<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
     points_to_match: ArrayView2<'_, f64>,
-) -> IndexAndDistance{
-    brute_force_par::<SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
+) -> IndexAndDistance {
+    brute_force_par::<DIM, SingleIndexDistance, IndexAndDistance>(line_points, points_to_match)
 }
 
 trait Distance {
     fn distance(&self) -> f64;
 }
 
-impl Distance for super::SinglePointDistance {
+impl<const DIM: usize> Distance for super::SinglePointDistance<DIM> {
     fn distance(&self) -> f64 {
         self.distance
     }
@@ -67,21 +70,19 @@ impl Distance for super::SingleIndexDistance {
 ///
 /// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
 /// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
-fn brute_force<'a, 'b, SINGLE, ALL>(
+fn brute_force<'a, 'b, const DIM: usize, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
 ) -> ALL
 where
     SINGLE: From<(SingleIndexDistance, ArrayView2<'a, f64>)>,
-    ALL: FromShapeIter<SINGLE>,
+    ALL: FromShapeIter<DIM, SINGLE>,
 {
     let points_iter = points_to_match.axis_iter(Axis(0)).map(|point| {
-        let point_x = point[[0]];
-        let point_y = point[[1]];
+        let array_point = super::copy_to_array::<DIM>(point);
 
-        let min_distance = min_distance_to_point(line_points, [point_x, point_y]);
+        let min_distance = min_distance_to_point(line_points, array_point);
         SINGLE::from((min_distance, line_points))
-
     });
 
     ALL::from_shape_iter(points_iter, points_to_match.dim())
@@ -101,23 +102,23 @@ where
 ///
 /// Usually `SINGLE` = [`SinglePointDistance`] (`ALL` = `[LocationAndDistance`]), or
 /// `SINGLE` = [`SingleIndexDistance`] (`ALL` = `[IndexAndDistance]`).
-fn brute_force_par<'a, 'b, SINGLE, ALL>(
+fn brute_force_par<'a, 'b, const DIM: usize, SINGLE, ALL>(
     line_points: ArrayView2<'a, f64>,
     points_to_match: ArrayView2<'b, f64>,
 ) -> ALL
 where
     SINGLE: From<(SingleIndexDistance, ArrayView2<'a, f64>)> + Send,
-    ALL: FromShapeIter<SINGLE>,
+    ALL: FromShapeIter<DIM, SINGLE>,
 {
     let points_vec: Vec<_> = points_to_match
         .axis_iter(Axis(0))
         .into_iter()
         .into_par_iter()
         .map(|point| {
-            let point_x = point[[0]];
-            let point_y = point[[1]];
+            assert!(point.len() == DIM);
+            let array_point = super::copy_to_array::<DIM>(point);
 
-            let min_distance = min_distance_to_point(line_points, [point_x, point_y]);
+            let min_distance = min_distance_to_point(line_points, array_point);
             SINGLE::from((min_distance, line_points))
         })
         .collect();
@@ -125,25 +126,26 @@ where
     ALL::from_shape_iter(points_vec, points_to_match.dim())
 }
 
-fn min_distance_to_point(
+#[doc(hidden)]
+pub fn min_distance_to_point<const DIM: usize>(
     line_points: ArrayView2<'_, f64>,
-    point: [f64; 2],
+    point: [f64; DIM],
 ) -> SingleIndexDistance {
+    assert!(line_points.dim().1 == DIM);
+
     line_points
         .axis_iter(Axis(0))
         .enumerate()
         .map(|(index, point_row)| {
-            let line_x = point_row[[0]];
-            let line_y = point_row[[1]];
+            let line_point = super::copy_to_array::<DIM>(point_row);
 
-            let line_point = [line_x, line_y];
+            let mut distance = 0.0;
 
-            let distance = (point[0] - line_point[0]).powi(2) + (point[1] - line_point[1]).powi(2);
-
-            SingleIndexDistance {
-                distance,
-                index,
+            for i in 0..DIM {
+                distance += (point[i] - line_point[i]).powi(2);
             }
+
+            SingleIndexDistance { distance, index }
         })
         .reduce(minimize_float)
         .unwrap()
@@ -172,7 +174,6 @@ fn minimize_float<T: Distance>(left: T, right: T) -> T {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::LocationAndDistance;
     use crate::SinglePointDistance;
     use ndarray::Array2;
     use ndarray_rand::rand_distr::Uniform;
@@ -275,12 +276,8 @@ mod tests {
         let lines = Array2::random((10000, 2), Uniform::new(0.0, 10.0));
         let points = Array2::random((3000, 2), Uniform::new(0.0, 10.0));
 
-        let out_brute =
-            brute_force::<SinglePointDistance, LocationAndDistance>(lines.view(), points.view());
-        let out_par = brute_force_par::<SinglePointDistance, LocationAndDistance>(
-            lines.view(),
-            points.view(),
-        );
+        let out_brute = brute_force_location::<2>(lines.view(), points.view());
+        let out_par = brute_force_location_par::<2>(lines.view(), points.view());
 
         assert_eq!(out_brute, out_par);
     }

@@ -1,14 +1,17 @@
-mod brute_force;
+#[doc(hidden)]
+pub mod brute_force;
 mod pybind;
 mod tree;
 
-pub use brute_force::{brute_force_location, brute_force_index, brute_force_index_par, brute_force_location_par};
+pub use brute_force::{
+    brute_force_index, brute_force_index_par, brute_force_location, brute_force_location_par,
+};
 pub use tree::{kd_tree_index, kd_tree_index_par, kd_tree_location, kd_tree_location_par};
 
 use ndarray::Array1;
 use ndarray::Array2;
 
-pub trait FromShapeIter<A> {
+pub trait FromShapeIter<const DIM: usize, A> {
     fn from_shape_iter<T>(iter: T, cloud_shape: (usize, usize)) -> Self
     where
         T: IntoIterator<Item = A>;
@@ -20,7 +23,7 @@ pub struct IndexAndDistance {
     pub distance: Array1<f64>,
 }
 
-impl FromShapeIter<SingleIndexDistance> for IndexAndDistance {
+impl<const DIM: usize> FromShapeIter<DIM, SingleIndexDistance> for IndexAndDistance {
     fn from_shape_iter<T>(iter: T, cloud_shape: (usize, usize)) -> Self
     where
         T: IntoIterator<Item = SingleIndexDistance>,
@@ -44,18 +47,21 @@ pub struct LocationAndDistance {
     pub distance: Array1<f64>,
 }
 
-impl<'a> FromShapeIter<SinglePointDistanceRef<'a>> for LocationAndDistance {
+impl<'a, const DIM: usize> FromShapeIter<DIM, SinglePointDistanceRef<'a, DIM>>
+    for LocationAndDistance
+{
     fn from_shape_iter<T>(iter: T, cloud_shape: (usize, usize)) -> Self
     where
-        T: IntoIterator<Item = SinglePointDistanceRef<'a>>,
+        T: IntoIterator<Item = SinglePointDistanceRef<'a, DIM>>,
     {
         let iter = iter.into_iter();
         let mut location = Array2::zeros(cloud_shape);
         let mut distance = Array1::zeros(cloud_shape.0);
 
         for (row, point) in iter.enumerate() {
-            location[[row, 0]] = point.point[0];
-            location[[row, 1]] = point.point[1];
+            for col in 0..DIM {
+                location[[row, col]] = point.point[col];
+            }
 
             distance[[row]] = point.distance;
         }
@@ -64,18 +70,19 @@ impl<'a> FromShapeIter<SinglePointDistanceRef<'a>> for LocationAndDistance {
     }
 }
 
-impl FromShapeIter<SinglePointDistance> for LocationAndDistance {
+impl<const DIM: usize> FromShapeIter<DIM, SinglePointDistance<DIM>> for LocationAndDistance {
     fn from_shape_iter<T>(iter: T, cloud_shape: (usize, usize)) -> Self
     where
-        T: IntoIterator<Item = SinglePointDistance>,
+        T: IntoIterator<Item = SinglePointDistance<DIM>>,
     {
         let iter = iter.into_iter();
         let mut location = Array2::zeros(cloud_shape);
         let mut distance = Array1::zeros(cloud_shape.0);
 
         for (row, point) in iter.enumerate() {
-            location[[row, 0]] = point.point[0];
-            location[[row, 1]] = point.point[1];
+            for col in 0..DIM {
+                location[[row, col]] = point.point[col];
+            }
 
             distance[[row]] = point.distance;
         }
@@ -85,29 +92,34 @@ impl FromShapeIter<SinglePointDistance> for LocationAndDistance {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-struct SinglePointDistanceRef<'a> {
-    point: &'a [f64; 2],
+struct SinglePointDistanceRef<'a, const DIM: usize> {
+    point: &'a [f64; DIM],
     distance: f64,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-struct SinglePointDistance {
-    point: [f64; 2],
+struct SinglePointDistance<const DIM: usize> {
+    point: [f64; DIM],
     distance: f64,
 }
 
-impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SinglePointDistance {
+impl<const DIM: usize> From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)>
+    for SinglePointDistance<DIM>
+{
     fn from(x: (SingleIndexDistance, ndarray::ArrayView2<'_, f64>)) -> Self {
         let (point_distance, array) = x;
-        let point = unsafe {
-            let x = array.uget([point_distance.index, 0]);
-            let y = array.uget([point_distance.index, 1]);
-            [*x,*y]
-        };
+
+        let mut point: [f64; DIM] = [0.; DIM];
+
+        for col in 0..DIM {
+            // because these indexes from the compiler's perspective can be random,
+            // its helpful to use unsafe indexing on the ndarray::Array
+            point[col] = unsafe { *array.uget([point_distance.index, col]) }
+        }
 
         SinglePointDistance {
             point,
-            distance: point_distance.distance
+            distance: point_distance.distance,
         }
     }
 }
@@ -120,7 +132,8 @@ struct SingleIndexPointDistance {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-struct SingleIndexDistance {
+#[doc(hidden)]
+pub struct SingleIndexDistance {
     index: usize,
     distance: f64,
 }
@@ -129,4 +142,18 @@ impl From<(SingleIndexDistance, ndarray::ArrayView2<'_, f64>)> for SingleIndexDi
     fn from(x: (SingleIndexDistance, ndarray::ArrayView2<'_, f64>)) -> Self {
         x.0
     }
+}
+
+#[inline]
+fn copy_to_array<const DIM: usize>(arr: ndarray::ArrayView1<'_, f64>) -> [f64; DIM] {
+    #[cfg(debug_assertions)]
+    assert_eq!(arr.is_standard_layout(), true);
+
+    let mut array_point = [0.; DIM];
+
+    for i in 0..DIM {
+        array_point[i] = arr[i]
+    }
+
+    array_point
 }

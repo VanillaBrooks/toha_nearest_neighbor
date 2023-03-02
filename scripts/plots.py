@@ -6,10 +6,13 @@ from typing import Tuple
 import time
 from statistics import mean
 import math
+from scipy.spatial import KDTree
+
+DIM = 2
 
 def create_data(line_ct: int, point_ct: int) -> Tuple[np.ndarray, np.ndarray]:
-    line_pts = np.random.rand(line_ct, 2)
-    cloud_pts = np.random.rand(point_ct, 2)
+    line_pts = np.random.rand(line_ct, DIM)
+    cloud_pts = np.random.rand(point_ct, DIM)
 
     return line_pts, cloud_pts 
 
@@ -24,11 +27,15 @@ def bench_python_brute(lines: np.ndarray, cloud: np.ndarray):
 
         for line_row in range(lines.shape[0]):
             line_row_val = lines[line_row, :]
-            candidate_min = (line_row_val[0] - cloud_row_val[0])**2 + (line_row_val[1] - cloud_row_val[1])**2
 
-            if candidate_min < minimum:
+            distance = 0
+
+            for i in range(lines.shape[1]):
+                distance += (line_row_val[i] - cloud_row_val[i])**2
+
+            if distance < minimum:
                 minimum_idx = line_row
-                minimum = candidate_min
+                minimum = distance
 
         out_array[cloud_row] = minimum_idx
 
@@ -51,6 +58,10 @@ def bench_scikit(lines: np.ndarray, cloud: np.ndarray, algorithm: str):
     distances, indices = nbrs.kneighbors(cloud)
 
     return
+
+def bench_scipy(lines: np.ndarray, cloud: np.ndarray, compact:bool):
+    kd = KDTree(lines, compact_nodes = compact)
+    kd.query(cloud)
 
 def bench_rust_brute(lines: np.ndarray, cloud: np.ndarray, parallel: bool):
     toha.brute_force_index(lines, cloud, parallel)
@@ -91,6 +102,8 @@ def bench_all():
     numpy_brute= []
     scikit_brute = []
     scikit_kd = []
+    scipy_kd = []
+    scipy_kd_compact = []
     rust_brute = []
     rust_kd = []
     rust_brute_par = []
@@ -123,6 +136,14 @@ def bench_all():
         l = lambda : bench_scikit(lines, clouds, "kd_tree")
         bench_helper(l, scikit_kd)
 
+        #scipy kd
+        l = lambda : bench_scipy(lines, clouds, False)
+        bench_helper(l, scipy_kd)
+
+        #scipy kd compact
+        l = lambda : bench_scipy(lines, clouds, True)
+        bench_helper(l, scipy_kd_compact)
+
         # rust brute serial
         l = lambda : bench_rust_brute(lines, clouds, False)
         bench_helper(l, rust_brute)
@@ -149,14 +170,23 @@ def bench_all():
     ax.set_yscale('log')
     ax.set_xscale('log')
 
-    ax.plot(python_xs, python_brute, label = "python brute", color = "black", linestyle = "solid")
-    ax.plot(xs, numpy_brute, label = "numpy brute", color = "red", linestyle = "dashdot")
-    ax.plot(xs, scikit_brute, label = "scikit brute", color = "red")
-    ax.plot(xs, scikit_kd, label = "scikit kd", color = "blue")
-    ax.plot(xs, rust_brute, label = "rust brute", color = "red", linestyle="dotted")
-    ax.plot(xs, rust_kd, label = "rust kd", color = "blue", linestyle="dotted")
-    ax.plot(xs, rust_brute_par, label = "rust brute parallel", color = "red", linestyle = "dashed")
-    ax.plot(xs, rust_kd_par, label = "rust kd parallel", color = "blue", linestyle = "dashed")
+    style_brute = "solid"
+    style_kd = "dashed"
+
+    ax.plot(python_xs, python_brute, label = "python brute", color = "black", linestyle = style_brute)
+    ax.plot(xs, numpy_brute, label = "numpy brute", color = "blue", linestyle = style_brute)
+
+    ax.plot(xs, scikit_brute, label = "scikit brute", color = "green", linestyle = style_brute)
+    ax.plot(xs, scikit_kd, label = "scikit kd", color = "green", linestyle = style_kd)
+
+    ax.plot(xs, scipy_kd, label = "scipy kd", color = "cyan", linestyle = style_kd)
+    ax.plot(xs, scipy_kd_compact, label = "scipy kd compact", color = "grey", linestyle = style_kd)
+
+    ax.plot(xs, rust_brute, label = "rust brute", color = "red", linestyle=style_brute)
+    ax.plot(xs, rust_kd, label = "rust kd", color = "red", linestyle=style_kd)
+
+    ax.plot(xs, rust_brute_par, label = "rust brute parallel", color = "orange", linestyle = style_brute)
+    ax.plot(xs, rust_kd_par, label = "rust kd parallel", color = "orange", linestyle = style_kd)
 
     plt.legend()
 

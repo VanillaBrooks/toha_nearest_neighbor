@@ -1,6 +1,6 @@
 [package]
 name = "toha_nearest_neighbor"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 [lib]
@@ -18,7 +18,12 @@ rayon = "1.6.1"
 
 pyo3 = { version = "0.18.1", features = ["extension-module"] }
 numpy = "0.18"
-kd-tree = "0.5.1"
+num-traits = "0.2.15"
+macros = { path = "./macros" }
+
+[dependencies.kd-tree]
+git = "https://github.com/VanillaBrooks/kd-tree"
+rev = "bda83e9c112614a466ff5567f6f09af87d153396"
 
 [dev-dependencies]
 ndarray-rand = "0.14.0"
@@ -31,3 +36,6 @@ harness = false
 [[bench]]
 name = "tree"
 harness = false
+
+[profile.release]
+lto = "fat"
