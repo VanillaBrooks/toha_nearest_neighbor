@@ -11,7 +11,8 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
@@ -99,13 +100,13 @@ their associated distances.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>line_points</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_LINE_POINTS,</span> <span class="pre">2)</span></code></p></li>
-<li><p><strong>point_cloud</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">2)</span></code></p></li>
+<li><p><strong>line_points</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_LINE_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code></p></li>
+<li><p><strong>point_cloud</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code></p></li>
 <li><p><strong>parallel</strong> (<em>bool</em>) – enable parallel processing for the dataset. If you have more than 2,000 line points and 2,000 point cloud points this may be useful.</p></li>
 </ul>
 </dd>
 </dl>
-<p>this function returns  a <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">2)</span></code> shaped array of the points where
+<p>this function returns  a <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code> shaped array of the points where
 each <code class="docutils literal notranslate"><span class="pre">i</span></code> th row of the returned array is a row of <code class="docutils literal notranslate"><span class="pre">line_points</span></code> that is closest to the
 <code class="docutils literal notranslate"><span class="pre">i</span></code> th row of <code class="docutils literal notranslate"><span class="pre">point_cloud</span></code></p>
 <p>Example:</p>
@@ -147,8 +148,8 @@ their associated distances.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>line_points</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_LINE_POINTS,</span> <span class="pre">2)</span></code></p></li>
-<li><p><strong>point_cloud</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">2)</span></code></p></li>
+<li><p><strong>line_points</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_LINE_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code></p></li>
+<li><p><strong>point_cloud</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code></p></li>
 <li><p><strong>parallel</strong> (<em>bool</em>) – enable parallel processing for the dataset. If you have more than 2,000 line points and 2,000 point cloud points this may be useful.</p></li>
 </ul>
 </dd>
@@ -190,13 +191,13 @@ their associated distances.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>line_points</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_LINE_POINTS,</span> <span class="pre">2)</span></code></p></li>
-<li><p><strong>point_cloud</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">2)</span></code></p></li>
+<li><p><strong>line_points</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_LINE_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code></p></li>
+<li><p><strong>point_cloud</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code></p></li>
 <li><p><strong>parallel</strong> (<em>bool</em>) – enable parallel processing for the dataset. If you have more than 2,000 line points and 2,000 point cloud points this may be useful.</p></li>
 </ul>
 </dd>
 </dl>
-<p>this function returns  a <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">2)</span></code> shaped array of the points where
+<p>this function returns  a <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code> shaped array of the points where
 each <code class="docutils literal notranslate"><span class="pre">i</span></code> th row of the returned array is a row of <code class="docutils literal notranslate"><span class="pre">line_points</span></code> that is closest to the
 <code class="docutils literal notranslate"><span class="pre">i</span></code> th row of <code class="docutils literal notranslate"><span class="pre">point_cloud</span></code></p>
 <p>Example:</p>
@@ -238,13 +239,13 @@ their associated distances.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>line_points</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_LINE_POINTS,</span> <span class="pre">2)</span></code></p></li>
-<li><p><strong>point_cloud</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">2)</span></code></p></li>
+<li><p><strong>line_points</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_LINE_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code></p></li>
+<li><p><strong>point_cloud</strong> (<em>np.ndarray</em>) – a 2D numpy array with each point being described by a row, and columns of coordinates of that point. Array should be in the shape <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code></p></li>
 <li><p><strong>parallel</strong> (<em>bool</em>) – enable parallel processing for the dataset. If you have more than 2,000 line points and 2,000 point cloud points this may be useful.</p></li>
 </ul>
 </dd>
 </dl>
-<p>this function returns  a <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">2)</span></code> shaped array of the points where
+<p>this function returns  a <code class="docutils literal notranslate"><span class="pre">(NUM_POINT_CLOUD_POINTS,</span> <span class="pre">POINT</span> <span class="pre">DIMENSION)</span></code> shaped array of the points where
 each <code class="docutils literal notranslate"><span class="pre">i</span></code> th row of the returned array is a row of <code class="docutils literal notranslate"><span class="pre">line_points</span></code> that is closest to the
 <code class="docutils literal notranslate"><span class="pre">i</span></code> th row of <code class="docutils literal notranslate"><span class="pre">point_cloud</span></code></p>
 <p>Example:</p>
