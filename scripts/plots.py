@@ -2,11 +2,12 @@ import toha_nearest_neighbor as toha
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Callable
 import time
-from statistics import mean
+from statistics import mean, median
 import math
 from scipy.spatial import KDTree
+import json
 
 DIM = 2
 
@@ -82,19 +83,34 @@ def bench(fn, times: int) -> float:
         end = time.time()
         runtimes.append(end - start)
 
-    return mean(runtimes)
+    return median(runtimes)
 
-def bench_helper(fn, output_list: list[float]):
-    out_mean = bench(fn, 10)
+def bench_helper(fn, size, output_list: list[float]):
+    if size < 500:
+        times = 500
+    elif size < 2000:
+        times = 40
+    else:
+        times = 10
+
+    out_mean = bench(fn, times)
 
     print(f"mean runtime was {out_mean}")
 
     # convert the mean time to ms
     output_list.append(out_mean)
 
+def bench_one(line_sizes: list[int], cloud_sizes:list[int], fn: Callable[..., None]):
+    out = []
+    for lines_ct,  clouds_ct in zip(line_sizes, cloud_sizes):
+        lines, clouds = create_data(lines_ct, clouds_ct)
+        l = lambda: fn(lines, clouds)
+        bench_helper(l, out)
+
+    return out
 
 def bench_all():
-    line_sizes = [100, 500, 1000, 5_000, 10_000, 15_000, 20_000, 30_000]
+    line_sizes = [100, 200, 300, 500, 600, 700, 800, 900, 1_000, 2_000, 4_000, 5_000, 10_000, 30_000]
     #line_sizes = [100, 500, 1000]
     cloud_sizes = line_sizes.copy()
 
@@ -118,79 +134,160 @@ def bench_all():
         xs.append(line_size * cloud_size)
 
         # python brute
-        if line_size <= 5_000:
+        if line_size <= 500:
             python_xs.append(line_size * cloud_size)
 
             l = lambda : bench_python_brute(lines, clouds)
-            bench_helper(l, python_brute)
+            bench_helper(l, line_size, python_brute)
 
         # numpy brute
         l = lambda : bench_numpy_brute(lines, clouds)
-        bench_helper(l, numpy_brute)
+        bench_helper(l, line_size, numpy_brute)
 
         # scikit brute
         l = lambda : bench_scikit(lines, clouds, "brute")
-        bench_helper(l, scikit_brute)
+        bench_helper(l, line_size, scikit_brute)
 
         # scikit kd
         l = lambda : bench_scikit(lines, clouds, "kd_tree")
-        bench_helper(l, scikit_kd)
+        bench_helper(l, line_size, scikit_kd)
 
         #scipy kd
         l = lambda : bench_scipy(lines, clouds, False)
-        bench_helper(l, scipy_kd)
+        bench_helper(l, line_size, scipy_kd)
 
         #scipy kd compact
         l = lambda : bench_scipy(lines, clouds, True)
-        bench_helper(l, scipy_kd_compact)
+        bench_helper(l, line_size, scipy_kd_compact)
 
         # rust brute serial
         l = lambda : bench_rust_brute(lines, clouds, False)
-        bench_helper(l, rust_brute)
+        bench_helper(l, line_size, rust_brute)
 
         # rust kd serial
         l = lambda : bench_rust_kd(lines, clouds, False)
-        bench_helper(l, rust_kd)
+        bench_helper(l, line_size, rust_kd)
 
         # rust brute parallel
         l = lambda : bench_rust_brute(lines, clouds, True)
-        bench_helper(l, rust_brute_par)
+        bench_helper(l, line_size, rust_brute_par)
 
         # rust kd parallel
         l = lambda : bench_rust_kd(lines, clouds, True)
-        bench_helper(l, rust_kd_par)
+        bench_helper(l, line_size, rust_kd_par)
 
         print(f"finished size {line_size} | {cloud_size}")
 
-    fig = plt.figure(figsize = (8, 6), dpi=300)
-    ax = fig.add_subplot(1, 1, 1)
-    ax.set_xlabel("total point size (num neighbors * num point cloud)")
-    ax.set_ylabel("runtime [s]")
+    results = {
+        "x" :xs,
+        "python_x": python_xs,
+        "python_brute_numpy_index": python_brute,
+        "numpy_brute": numpy_brute,
+        "scikit_brute": scikit_brute,
+        "scikit_kd": scikit_kd,
+        "scipy_kd": scipy_kd,
+        "scipy_kd_compact": scipy_kd_compact,
+        "rust_brute": rust_brute,
+        "rust_kd": rust_kd,
+        "rust_brute_par": rust_brute_par,
+        "rust_kd_par": rust_kd_par,
+    }
 
-    ax.set_yscale('log')
-    ax.set_xscale('log')
+    with open("./static/benchmarks.json", "w") as f:
+        json.dump(results, f)
 
-    style_brute = "solid"
-    style_kd = "dashed"
+    #fig = plt.figure(figsize = (8, 6), dpi=300)
+    #ax = fig.add_subplot(1, 1, 1)
+    #ax.set_xlabel("total point size (num neighbors * num point cloud)")
+    #ax.set_ylabel("runtime [s]")
 
-    ax.plot(python_xs, python_brute, label = "python brute", color = "black", linestyle = style_brute)
-    ax.plot(xs, numpy_brute, label = "numpy brute", color = "blue", linestyle = style_brute)
+    #ax.set_yscale('log')
+    #ax.set_xscale('log')
 
-    ax.plot(xs, scikit_brute, label = "scikit brute", color = "green", linestyle = style_brute)
-    ax.plot(xs, scikit_kd, label = "scikit kd", color = "green", linestyle = style_kd)
+    #style_brute = "solid"
+    #style_kd = "dashed"
 
-    ax.plot(xs, scipy_kd, label = "scipy kd", color = "cyan", linestyle = style_kd)
-    ax.plot(xs, scipy_kd_compact, label = "scipy kd compact", color = "grey", linestyle = style_kd)
+    #ax.plot(python_xs, python_brute, label = "python brute", color = "black", linestyle = style_brute)
+    #ax.plot(xs, numpy_brute, label = "numpy brute", color = "blue", linestyle = style_brute)
 
-    ax.plot(xs, rust_brute, label = "rust brute", color = "red", linestyle=style_brute)
-    ax.plot(xs, rust_kd, label = "rust kd", color = "red", linestyle=style_kd)
+    #ax.plot(xs, scikit_brute, label = "scikit brute", color = "green", linestyle = style_brute)
+    #ax.plot(xs, scikit_kd, label = "scikit kd", color = "green", linestyle = style_kd)
 
-    ax.plot(xs, rust_brute_par, label = "rust brute parallel", color = "orange", linestyle = style_brute)
-    ax.plot(xs, rust_kd_par, label = "rust kd parallel", color = "orange", linestyle = style_kd)
+    #ax.plot(xs, scipy_kd, label = "scipy kd", color = "cyan", linestyle = style_kd)
+    #ax.plot(xs, scipy_kd_compact, label = "scipy kd compact", color = "grey", linestyle = style_kd)
 
-    plt.legend()
+    #ax.plot(xs, rust_brute, label = "rust brute", color = "red", linestyle=style_brute)
+    #ax.plot(xs, rust_kd, label = "rust kd", color = "red", linestyle=style_kd)
 
-    plt.savefig("./static/benchmarks.png", bbox_inches="tight")
+    #ax.plot(xs, rust_brute_par, label = "rust brute parallel", color = "orange", linestyle = style_brute)
+    #ax.plot(xs, rust_kd_par, label = "rust kd parallel", color = "orange", linestyle = style_kd)
 
+    #plt.legend()
+
+    #plt.savefig("./static/benchmarks.png", bbox_inches="tight")
 
 bench_all()
+
+#lines : list[int] = [100, 500, 1000, 5_000, 10_000, 15_000, 20_000, 30_000]
+#clouds = lines.copy()
+#
+#print("python brute (numpy indexing)")
+#l = lambda lines,clouds: bench_python_brute(lines, clouds)
+#py_short_lines = [i for i in lines if i <= 100]
+#out = bench_one(py_short_lines, py_short_lines, l)
+#print(out)
+#
+#
+## numpy brute
+#print("numpy brute")
+#l = lambda lines,clouds: bench_numpy_brute(lines, clouds)
+#out = bench_one(lines, clouds, l)
+#print(out)
+#
+## scikit brute
+#print("scikit brute")
+#l = lambda lines,clouds: bench_scikit(lines, clouds, "brute")
+#out = bench_one(lines, clouds, l)
+#print(out)
+#
+## scikit kd
+#print("scikit kd")
+#l = lambda lines,clouds: bench_scikit(lines, clouds, "kd_tree")
+#out = bench_one(lines, clouds, l)
+#print(out)
+#
+##scipy kd
+#print("scipy kd")
+#l = lambda lines,clouds: bench_scipy(lines, clouds, False)
+#out = bench_one(lines, clouds, l)
+#print(out)
+#
+##scipy kd compact
+#print("scipy kd compact")
+#l = lambda lines,clouds: bench_scipy(lines, clouds, True)
+#out = bench_one(lines, clouds, l)
+#print(out)
+#
+## rust brute serial
+#print("rust brute serial")
+#l = lambda lines,clouds: bench_rust_brute(lines, clouds, False)
+#out = bench_one(lines, clouds, l)
+#print(out)
+#
+## rust kd serial
+#print("rust kd serial")
+#l = lambda lines,clouds: bench_rust_kd(lines, clouds, False)
+#out = bench_one(lines, clouds, l)
+#print(out)
+#
+## rust brute parallel
+#print("rust brute parallel")
+#l = lambda lines,clouds: bench_rust_brute(lines, clouds, True)
+#out = bench_one(lines, clouds, l)
+#print(out)
+#
+## rust kd parallel
+#print("rust kd parallel")
+#l = lambda lines,clouds: bench_rust_kd(lines, clouds, True)
+#out = bench_one(lines, clouds, l)
+#print(out)
